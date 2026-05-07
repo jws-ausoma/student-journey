@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AUSOMA · Data Quality</title>
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1a2333; --muted:#5b6677; --border:#e3e6ec;
+  --brand:#0b3d91; --brand-2:#1d6fb8; --accent:#f0a500;
+  --st-PreMed:#cdd9f5;     --ink-PreMed:#102a5c;
+  --st-BasicSc:#a8d8ea;    --ink-BasicSc:#073447;
+  --st-PreClin:#ffe0a3;    --ink-PreClin:#5a3a00;
+  --st-Clinicals:#b6e3c1;  --ink-Clinicals:#114a2a;
+  --st-Exited:#f5b8b8;     --ink-Exited:#5a0e0e;
+  --st-Grad:#9b8bd9;       --ink-Grad:#1c0c4d;
+  --st-Meta:#e9eaee;       --ink-Meta:#3b3f4a;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:var(--bg); color:var(--ink);
+  font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+header.topbar { background:var(--brand); color:white; padding:12px 22px; display:flex; align-items:center; gap:18px; }
+header.topbar img { height:34px; }
+header.topbar h1 { margin:0; font-size:18px; font-weight:600; letter-spacing:.2px; }
+header.topbar .meta { margin-left:auto; font-size:12px; opacity:.85; }
+
+nav.tabs { background:#0a3478; padding:0 22px; display:flex; gap:0; border-bottom:3px solid var(--accent); }
+nav.tabs a { color:#dde6f5; text-decoration:none; padding:10px 18px; font-size:13px; font-weight:600; border-bottom:3px solid transparent; margin-bottom:-3px; }
+nav.tabs a:hover { color:white; background:rgba(255,255,255,.05); }
+nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:rgba(255,255,255,.07); }
+
+.kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:8px; padding:12px 22px 6px 22px; background:#fff; }
+.kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:8px; padding:10px 12px; box-shadow:0 1px 2px rgba(11,61,145,.06); transition:transform .1s, box-shadow .15s, background .15s; }
+.kpi .card.clickable { cursor:pointer; user-select:none; }
+.kpi .card.clickable:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(11,61,145,.18); }
+.kpi .card.active { outline:3px solid var(--accent); outline-offset:1px; background:#fff7e6; }
+.kpi .card.active .label { color:var(--brand); }
+.kpi .card.stage-Enrolled { border-color:#7bb37b;             background:#fbfffb; }
+.kpi .card.stage-BasicSc  { border-color:var(--st-BasicSc);   background:#fbfdff; }
+.kpi .card.stage-PreClin  { border-color:#e6c87a;             background:#fffbf0; }
+.kpi .card.stage-Clinicals{ border-color:var(--st-Clinicals); background:#fbfffc; }
+.kpi .card.stage-Exited   { border-color:var(--st-Exited);    background:#fffbfb; }
+.kpi .card.stage-Grad     { border-color:var(--st-Grad);      background:#fdfbff; }
+.kpi .card .breakdown { display:flex; gap:10px; margin-top:4px; font-size:11px; color:var(--muted); }
+.kpi .card .breakdown b { color:var(--ink); font-weight:700; }
+.kpi .label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+.kpi .value { font-size:22px; font-weight:700; margin-top:2px; color:var(--ink); }
+.kpi .sub { font-size:11px; color:var(--muted); }
+.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:6px 22px; font-size:12px; color:var(--ink); display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
+.kpi-visible .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-size:10px; font-weight:700; margin-right:8px; }
+.kpi-visible .seg { white-space:nowrap; }
+.kpi-visible .seg b { color:var(--brand); font-weight:700; }
+.kpi-visible .seg .name { color:var(--muted); margin-right:4px; font-size:11px; }
+.kpi-visible.stage-PreMed b { color:#102a5c; }
+.kpi-visible.stage-BasicSc b { color:#073447; }
+
+.filters { display:flex; gap:8px 14px; flex-wrap:wrap; padding:10px 22px; background:#fff; border-bottom:1px solid var(--border); align-items:center; position:sticky; top:0; z-index:5; }
+.filters label { font-size:12px; color:var(--muted); font-weight:600; }
+.filters select, .filters input[type=text] { font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; color:var(--ink); box-shadow:0 1px 2px rgba(11,61,145,.08); transition:border-color .15s, box-shadow .15s; }
+.filters select:hover, .filters input[type=text]:hover { border-color:var(--brand-2); }
+.filters select:focus, .filters input[type=text]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(240,165,0,.25); }
+.filters button.clear { font:12px inherit; padding:6px 12px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; }
+.filters button.clear:hover { background:var(--brand); color:white; }
+.filters .count { margin-left:auto; font-size:12px; color:var(--muted); }
+.filters .note { font-size:11px; color:var(--muted); font-style:italic; }
+.filters .group-box { display:inline-flex; gap:6px; align-items:center; padding:4px 10px 4px 8px; border:1px dashed var(--brand); border-radius:8px; background:#f6f9ff; }
+.filters .group-box .group-lbl { font-size:11px; color:var(--brand); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-right:4px; }
+.filters .group-box label { font-weight:500; }
+
+.layout { display:grid; grid-template-columns: minmax(420px, 1.1fr) 2fr; gap:14px; padding:14px 22px; }
+.layout.stacked { grid-template-columns: 1fr; }
+@media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } }
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+
+.roster { max-height: calc(100vh - 280px); overflow:auto; }
+.roster.compact { max-height: 280px; }  /* ~5 rows + sticky header on the stacked layout */
+.roster table { width:100%; border-collapse:collapse; }
+.roster thead th { position:sticky; top:0; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
+.roster thead tr:nth-child(2) th { top:32px; background:#e6ebf3; border-top:1px solid var(--border); }
+.roster thead th.group-hdr { background:var(--brand); color:white; text-align:center; font-weight:700; cursor:default; border-bottom:1px solid white; letter-spacing:.06em; }
+.roster thead th.group-hdr:hover { background:var(--brand); }
+.roster thead th .sortarr { color:var(--muted); margin-left:4px; font-size:10px; }
+.roster thead th.sorted .sortarr { color:var(--accent); }
+.roster tbody tr { cursor:pointer; border-bottom:1px solid #eef0f4; }
+.roster tbody tr:hover { background:#f7f9fd; }
+.roster tbody tr.selected { background:#e8f0fb; }
+.roster td { padding:8px 10px; vertical-align:top; }
+.roster .name { font-weight:600; }
+.roster .meta { color:var(--muted); font-size:11px; }
+.roster .mini-lane { display:flex; gap:1px; margin-top:4px; }
+.roster .mini-lane .cell { width:6px; height:14px; border-radius:1px; background:#eef0f4; }
+
+.status-pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; white-space:nowrap; }
+.status-Enrolled { background:#dcecdc; color:#0f5128; }
+.status-Grad { background:#e7e0fb; color:#36148a; }
+.status-W-Dism, .status-WDism { background:#f7d8d8; color:#7a1414; }
+.status-empty { background:#eee; color:#666; }
+.type-pill { font-size:11px; padding:2px 7px; border-radius:4px; font-weight:600; }
+.type-New { background:#e0eaff; color:#102a5c; }
+.type-XFR { background:#fde4c5; color:#5a3a00; }
+
+.detail { padding:18px 20px; max-height: calc(100vh - 280px); overflow:auto; }
+.layout.stacked .detail { max-height: none; overflow: visible; }
+.detail h2 { margin:0 0 4px 0; font-size:20px; }
+.detail .sid { color:var(--muted); font-size:12px; }
+.detail .group { margin-top:18px; border:1.5px solid var(--brand); border-radius:8px; padding:14px 16px; background:#fbfcfe; box-shadow:0 1px 3px rgba(11,61,145,.06); }
+.detail .group h3 { margin:0 0 10px 0; font-size:12px; color:var(--brand); text-transform:uppercase; letter-spacing:.07em; font-weight:700; border-bottom:2px solid var(--brand); padding-bottom:6px; }
+.detail .kvgrid { display:grid; grid-template-columns: 200px 1fr; row-gap:6px; column-gap:14px; }
+.detail .kvgrid .k { color:var(--muted); }
+.detail .group .crosslink { float:right; font-size:11px; font-weight:500; }
+.detail .group .crosslink a { color:var(--brand-2); text-decoration:none; }
+.detail .group .crosslink a:hover { text-decoration:underline; }
+
+.lastn { display:flex; gap:8px; flex-wrap:wrap; }
+.lastn .sembox { flex:1 1 220px; min-width:200px; padding:10px 12px; border-radius:8px; border:1px solid var(--border); }
+.lastn .sembox .lab { font-size:11px; color:var(--muted); margin-bottom:4px; }
+
+.timeline { display:grid; gap:3px; }
+.timeline .col { display:flex; flex-direction:column; align-items:stretch; }
+.timeline .colhdr { font-size:9px; color:var(--muted); text-align:center; padding:2px 0; border-bottom:1px solid var(--border); margin-bottom:2px; line-height:1.1; height:30px; display:flex; align-items:flex-end; justify-content:center; }
+.timeline .cell { height:54px; border-radius:4px; padding:3px 4px; display:flex; flex-direction:column; gap:2px; overflow:hidden; font-size:9.5px; }
+.timeline .cell.empty { background:#f4f5f8; }
+.timeline .cell.PreMed   { background:var(--st-PreMed);   color:var(--ink-PreMed); }
+.timeline .cell.BasicSc  { background:var(--st-BasicSc);  color:var(--ink-BasicSc); }
+.timeline .cell.PreClin  { background:var(--st-PreClin);  color:var(--ink-PreClin); }
+.timeline .cell.Clinicals{ background:var(--st-Clinicals);color:var(--ink-Clinicals); }
+.timeline .cell.Exited   { background:var(--st-Exited);   color:var(--ink-Exited); }
+.timeline .cell.Grad     { background:var(--st-Grad);     color:white; }
+.timeline .cell.Meta     { background:var(--st-Meta);     color:var(--ink-Meta); }
+.timeline .cell .chip { background:rgba(255,255,255,.55); padding:1px 4px; border-radius:3px; }
+
+.legend-row { display:flex; gap:10px; flex-wrap:wrap; padding:8px 22px; background:#fbfcfe; border-top:1px solid var(--border); font-size:11px; }
+.legend-row .swatch { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:middle; margin-right:4px; }
+
+.note { white-space:pre-wrap; padding:10px; background:#fff8e6; border:1px solid #f0d896; border-radius:6px; font-size:13px; }
+.empty-detail { color:var(--muted); padding:40px; text-align:center; }
+
+.cbse-band { display:inline-block; padding:2px 7px; border-radius:4px; font-weight:600; font-size:12px; }
+.cbse-band.pass { background:#cfeacf; color:#0f5128; }
+.cbse-band.near { background:#fff0c2; color:#7a5a00; }
+.cbse-band.warn { background:#ffd3a8; color:#7a3500; }
+.cbse-band.fail { background:#f7c1c1; color:#7a1414; }
+
+.step-pill { display:inline-block; padding:2px 8px; border-radius:99px; font-weight:600; font-size:11px; }
+.step-passed { background:#dcecdc; color:#0f5128; }
+.step-fail { background:#f7d8d8; color:#7a1414; }
+.step-none { background:#eee; color:#666; }
+
+.history-list { font-size:13px; }
+.history-list .ev { padding:4px 8px; margin:2px 0; border-radius:4px; display:flex; justify-content:space-between; align-items:center; }
+.history-list .ev.pass { background:#dcecdc; color:#0f5128; }
+.history-list .ev.fail { background:#f7d8d8; color:#7a1414; }
+.history-list .ev .tag { font-weight:600; }
+
+@media print {
+  .topbar .meta, .filters, .roster, nav.tabs { display:none; }
+  .layout { grid-template-columns: 1fr; padding:0; }
+  .panel { border:none; }
+  .detail { max-height:none; }
+}
+
+/* Legend / Tags help modal */
+.legend-btn { font:12px inherit; padding:5px 10px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:700; }
+.legend-btn:hover { background:var(--brand); color:white; }
+.legend-modal-bg { position:fixed; inset:0; background:rgba(11,35,51,.42); display:none; align-items:flex-start; justify-content:center; z-index:200; padding:40px 20px; overflow-y:auto; }
+.legend-modal-bg.open { display:flex; }
+.legend-modal { background:white; border-radius:12px; max-width:920px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(11,35,51,.3); }
+.legend-modal header { padding:16px 22px; border-bottom:2px solid var(--brand); display:flex; align-items:center; gap:14px; position:sticky; top:0; background:white; z-index:1; }
+.legend-modal header h2 { margin:0; color:var(--brand); font-size:18px; flex:1; }
+.legend-modal header .close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--muted); padding:4px 10px; border-radius:6px; }
+.legend-modal header .close:hover { background:#f0f3f8; color:var(--ink); }
+.legend-modal .body { padding:14px 22px 22px 22px; }
+.legend-modal .intro { color:var(--muted); font-size:13px; margin-bottom:14px; }
+.legend-stage { margin-top:14px; }
+.legend-stage h3 { margin:0 0 8px 0; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:6px 10px; border-radius:6px; }
+.legend-stage.PreMed h3   { background:var(--st-PreMed);    color:var(--ink-PreMed); }
+.legend-stage.BasicSc h3  { background:var(--st-BasicSc);   color:var(--ink-BasicSc); }
+.legend-stage.PreClin h3  { background:var(--st-PreClin);   color:var(--ink-PreClin); }
+.legend-stage.Clinicals h3{ background:var(--st-Clinicals); color:var(--ink-Clinicals); }
+.legend-stage.Exited h3   { background:var(--st-Exited);    color:var(--ink-Exited); }
+.legend-stage.Grad h3     { background:var(--st-Grad);      color:white; }
+.legend-stage.Meta h3     { background:var(--st-Meta);      color:var(--ink-Meta); }
+.legend-stage table { width:100%; border-collapse:collapse; }
+.legend-stage td { padding:5px 8px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:top; }
+.legend-stage td.tag { width:120px; }
+.legend-stage td.tag .pill { display:inline-block; font-weight:700; padding:2px 8px; border-radius:4px; font-size:12px; border:1px solid; }
+.legend-stage.PreMed   td.tag .pill { background:var(--st-PreMed);    color:var(--ink-PreMed);    border-color:#9ab1ea; }
+.legend-stage.BasicSc  td.tag .pill { background:var(--st-BasicSc);   color:var(--ink-BasicSc);   border-color:#7bbed4; }
+.legend-stage.PreClin  td.tag .pill { background:var(--st-PreClin);   color:var(--ink-PreClin);   border-color:#e6c87a; }
+.legend-stage.Clinicals td.tag .pill{ background:var(--st-Clinicals); color:var(--ink-Clinicals); border-color:#7bb37b; }
+.legend-stage.Exited   td.tag .pill { background:var(--st-Exited);    color:var(--ink-Exited);    border-color:#d68888; }
+.legend-stage.Grad     td.tag .pill { background:var(--st-Grad);      color:white;                border-color:#7765c2; }
+.legend-stage.Meta     td.tag .pill { background:var(--st-Meta);      color:var(--ink-Meta);      border-color:#c5c8d2; }
+</style>
+</head><body>
+<header class="topbar">
+  
+  <h1>AUSOMA Student Journey</h1>
+  <div class="meta">Built 2026-05-07 03:04 · Term Summer 2026</div>
+</header>
+<nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
+
+<div class="legend-modal-bg" id="legend-modal-bg" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="legend-modal">
+    <header>
+      <h2>Tag Legend</h2>
+      <button class="close" onclick="document.getElementById('legend-modal-bg').classList.remove('open')" aria-label="Close">×</button>
+    </header>
+    <div class="body">
+      <div class="intro">Tags are short codes used in the StudentJourney semester cells to mark milestones, leaves, rotations, and exits. The dashboard groups tags into stages (PreMed → Basic Sciences → Pre-Clinical → Clinicals → Exited / Graduated) which drive the color coding throughout. Click outside this dialog or the × to close.</div>
+      <div class="legend-stage PreMed"><h3>PreMed</h3><table>
+<tr><td class="tag"><span class="pill">PM1</span></td><td>PreMed Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">PM2</span></td><td>PreMed Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">PM3</span></td><td>PreMed Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">PM4</span></td><td>PreMed Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">StartPM</span></td><td>Started PreMed (cohort entry)</td></tr>
+</table></div>
+<div class="legend-stage BasicSc"><h3>Basic Sciences (MD1–MD5)</h3><table>
+<tr><td class="tag"><span class="pill">StartMD</span></td><td>Semester student started with the institution</td></tr>
+<tr><td class="tag"><span class="pill">MD1</span></td><td>Basic Sciences Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">MD2</span></td><td>Basic Sciences Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">MD3</span></td><td>Basic Sciences Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">MD4</span></td><td>Basic Sciences Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">MD5</span></td><td>Basic Sciences Semester 5 (final pre-clinical)</td></tr>
+<tr><td class="tag"><span class="pill">MD</span></td><td>Generic MD-phase shorthand</td></tr>
+<tr><td class="tag"><span class="pill">New</span></td><td>New Student</td></tr>
+<tr><td class="tag"><span class="pill">XFR</span></td><td>Transfer Student</td></tr>
+<tr><td class="tag"><span class="pill">Deferred</span></td><td>Deferred admission</td></tr>
+</table></div>
+<div class="legend-stage PreClin"><h3>Pre-Clinical (post-MD5 / pre-clinical placement)</h3><table>
+<tr><td class="tag"><span class="pill">LOA</span></td><td>Leave of Absence — billable</td></tr>
+<tr><td class="tag"><span class="pill">LOA-F</span></td><td>First Leave of Absence — non-billable (now relabeled as ST)</td></tr>
+<tr><td class="tag"><span class="pill">LOA-M</span></td><td>Medical Leave of Absence</td></tr>
+<tr><td class="tag"><span class="pill">ASF</span></td><td>Academic Standing Fee — student paying to keep enrollment active</td></tr>
+<tr><td class="tag"><span class="pill">IST</span></td><td>Independent Study Time — first 4 months after first MD5, non-billable</td></tr>
+<tr><td class="tag"><span class="pill">ST</span></td><td>Study Time (formerly LOA-F)</td></tr>
+<tr><td class="tag"><span class="pill">S1P</span></td><td>USMLE Step 1 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S1P2</span></td><td>USMLE Step 1 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F</span></td><td>USMLE Step 1 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S1F2</span></td><td>USMLE Step 1 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F3</span></td><td>USMLE Step 1 Failed (3rd attempt)</td></tr>
+</table></div>
+<div class="legend-stage Clinicals"><h3>Clinicals (cores, electives, Step 2, Match)</h3><table>
+<tr><td class="tag"><span class="pill">CC</span></td><td>Clinical Core (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CC1</span></td><td>Clinical Core block 1</td></tr>
+<tr><td class="tag"><span class="pill">CC2</span></td><td>Clinical Core block 2</td></tr>
+<tr><td class="tag"><span class="pill">CC3</span></td><td>Clinical Core block 3</td></tr>
+<tr><td class="tag"><span class="pill">CC4</span></td><td>Clinical Core block 4</td></tr>
+<tr><td class="tag"><span class="pill">CC5</span></td><td>Clinical Core block 5</td></tr>
+<tr><td class="tag"><span class="pill">CC6</span></td><td>Clinical Core block 6</td></tr>
+<tr><td class="tag"><span class="pill">CC7</span></td><td>Clinical Core block 7</td></tr>
+<tr><td class="tag"><span class="pill">CC8</span></td><td>Clinical Core block 8</td></tr>
+<tr><td class="tag"><span class="pill">CC9</span></td><td>Clinical Core block 9</td></tr>
+<tr><td class="tag"><span class="pill">CC10</span></td><td>Clinical Core block 10</td></tr>
+<tr><td class="tag"><span class="pill">CC11</span></td><td>Clinical Core block 11</td></tr>
+<tr><td class="tag"><span class="pill">CC12</span></td><td>Clinical Core block 12</td></tr>
+<tr><td class="tag"><span class="pill">CIM</span></td><td>Internal Medicine Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CSU</span></td><td>Surgery Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CFM</span></td><td>Family Medicine Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">COB</span></td><td>OBGYN Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPE</span></td><td>Pediatrics Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPS</span></td><td>Psychiatry Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE</span></td><td>Clinical Elective (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CE4</span></td><td>Clinical Elective (4 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE6</span></td><td>Clinical Elective (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE8</span></td><td>Clinical Elective (8 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE10</span></td><td>Clinical Elective (10 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">S2P</span></td><td>USMLE Step 2 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S2P2</span></td><td>USMLE Step 2 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2P3</span></td><td>USMLE Step 2 Passed (3rd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F</span></td><td>USMLE Step 2 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S2F1</span></td><td>USMLE Step 2 Failed (1st attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F2</span></td><td>USMLE Step 2 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">ApplMatch</span></td><td>Applied for Match</td></tr>
+<tr><td class="tag"><span class="pill">Matched</span></td><td>Matched into residency</td></tr>
+<tr><td class="tag"><span class="pill">NotMatched</span></td><td>Applied but did not Match in applied year</td></tr>
+</table></div>
+<div class="legend-stage Exited"><h3>Exited</h3><table>
+<tr><td class="tag"><span class="pill">W-Dism</span></td><td>Withdrawn / Dismissed (generic)</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-T</span></td><td>Withdrawn — Transferred Out</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-P</span></td><td>Withdrawn — Personal Reasons</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-F</span></td><td>Withdrawn — Financial</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-A</span></td><td>Dismissed Academically</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-H</span></td><td>Withdrawn — Health</td></tr>
+</table></div>
+<div class="legend-stage Grad"><h3>Graduated</h3><table>
+<tr><td class="tag"><span class="pill">Grad</span></td><td>Semester student graduated</td></tr>
+</table></div>
+<div class="legend-stage Meta"><h3>Milestone tags (overlays)</h3><table>
+<tr><td class="tag"><span class="pill">TargetGrd</span></td><td>Anticipated graduation semester</td></tr>
+<tr><td class="tag"><span class="pill">FW</span></td><td>Fee Waiver</td></tr>
+<tr><td class="tag"><span class="pill">ReAdmit</span></td><td>Readmitted after withdrawal</td></tr>
+</table></div>
+    </div>
+  </div>
+</div>
+
+
+<section style="padding:24px;">
+<h2 style="color:var(--brand)">Data Quality Report</h2>
+<p style="color:var(--muted)">Compares each tag in StudentJourney against the canonical Legend. Most flags are casing/spelling variants; narrative-text entries should be moved to the Note column. Fix in the source xlsx and re-run <code>build_journey_page.py</code>.</p>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">casing/spelling-variant of 'ApplMatch' <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">6</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2023000001</td><td>Anastasia Burns</td><td>Fall 2026</td><td><code>AppliedMatch</code></td></tr><tr><td>2019000020</td><td>Farah Raza</td><td>Fall 2026</td><td><code>AppliedMatch</code></td></tr><tr><td>2022000012</td><td>Ghania Moeen</td><td>Fall 2026</td><td><code>AppliedMatch</code></td></tr><tr><td>2021000028</td><td>Ghassan Jibawi</td><td>Fall 2026</td><td><code>AppliedMatch</code></td></tr><tr><td>2022000021</td><td>Mmesoma Anietom</td><td>Fall 2026</td><td><code>AppliedMatch</code></td></tr><tr><td>2023000034</td><td>Nauroze Mir</td><td>Fall 2026</td><td><code>AppliedMatch</code></td></tr></tbody></table>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">narrative-text-in-tag-cell <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">5</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2021000019</td><td>Mario Carrasco</td><td>Summer 2026</td><td><code>ASF to 6/16/2026</code></td></tr><tr><td>2023000038</td><td>Sreehasa Tanniru</td><td>Fall 2026</td><td><code>if doesn't matriculate</code></td></tr><tr><td>2023000038</td><td>Sreehasa Tanniru</td><td>Fall 2026</td><td><code>drop from rolls</code></td></tr><tr><td>2020000039</td><td>Umna Alam</td><td>Fall 2025</td><td><code>LOA (I believe she was repeating MD5)</code></td></tr><tr><td>2022000009</td><td>Yardly Plaisir</td><td>Summer 2026</td><td><code>ASF through 5/1/2026</code></td></tr></tbody></table>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">casing/spelling-variant of 'TargetGrd' <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">5</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2022000012</td><td>Ghania Moeen</td><td>Summer 2026</td><td><code>targetgrd</code></td></tr><tr><td>2021000028</td><td>Ghassan Jibawi</td><td>Summer 2026</td><td><code>targetgrd</code></td></tr><tr><td>2022000021</td><td>Mmesoma Anietom</td><td>Summer 2026</td><td><code>targetgrd</code></td></tr><tr><td>2023000034</td><td>Nauroze Mir</td><td>Summer 2026</td><td><code>targetgrd</code></td></tr><tr><td>2020000048</td><td>Olayemi "Eunice" Olowomeye </td><td>Summer 2026</td><td><code>targetgrd</code></td></tr></tbody></table>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">casing/spelling-variant of 'W-Dism-A' <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">4</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2021000008</td><td>Azad Farr</td><td>Summer 2026</td><td><code>W-DIsm-A</code></td></tr><tr><td>2019000051</td><td>Priscilla Pede</td><td>Fall 2023</td><td><code>Dismissed</code></td></tr><tr><td>2023000014</td><td>Shamarria Brooks</td><td>Spring 2026</td><td><code>W-DISM-A</code></td></tr><tr><td>2025000008</td><td>Sheila Bridges</td><td>Spring 2026</td><td><code>W-DISM-A</code></td></tr></tbody></table>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">casing/spelling-variant of 'W-Dism-F' <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">4</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2025000019</td><td>Elesasheraine Erasmus</td><td>Spring 2026</td><td><code>W-DISM-F</code></td></tr><tr><td>2020000044</td><td>Ralph Cadet</td><td>Spring 2026</td><td><code>W-DISM-F</code></td></tr><tr><td>2023000029</td><td>Ruthmae Brown</td><td>Spring 2026</td><td><code>W-DISM-F</code></td></tr><tr><td>2023000016</td><td>Zune Phwe</td><td>Spring 2026</td><td><code>W-DISM-F</code></td></tr></tbody></table>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">casing/spelling-variant of 'W-Dism-H' <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">3</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2022000027</td><td>Christian Diaz</td><td>Fall 2025</td><td><code>W-DISM-H</code></td></tr><tr><td>2022000027</td><td>Christian Diaz</td><td>Spring 2026</td><td><code>W-DISM-H</code></td></tr><tr><td>2022000027</td><td>Christian Diaz</td><td>Summer 2025</td><td><code>W-DISM-H</code></td></tr></tbody></table>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">casing/spelling-variant of 'W-Dism-P' <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">1</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2020000037</td><td>Katherine Castellvi</td><td>Summer 2026</td><td><code>W-DISM-P</code></td></tr></tbody></table>
+<h3 style="border-bottom:2px solid var(--brand); padding-bottom:6px; color:var(--brand)">unknown-tag (not in legend) <span style="background:#f0a500;color:white;padding:2px 8px;border-radius:99px;font-size:12px;margin-left:6px">1</span></h3><table style="border-collapse:collapse;width:100%;background:white;margin-bottom:18px"><thead><tr style="background:#eef2f8"><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Student ID</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Name</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Semester</th><th style="padding:6px 10px;border:1px solid var(--border);text-align:left">Raw value</th></tr></thead><tbody><tr><td>2022000020</td><td>Mahmood Syed</td><td>Fall 2025</td><td><code>ApplMatch - was not certified</code></td></tr></tbody></table>
+</section></body></html>

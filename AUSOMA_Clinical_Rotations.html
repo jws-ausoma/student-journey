@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AUSOMA · Clinical Rotations</title>
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1a2333; --muted:#5b6677; --border:#e3e6ec;
+  --brand:#0b3d91; --brand-2:#1d6fb8; --accent:#f0a500;
+  --st-PreMed:#cdd9f5;     --ink-PreMed:#102a5c;
+  --st-BasicSc:#a8d8ea;    --ink-BasicSc:#073447;
+  --st-PreClin:#ffe0a3;    --ink-PreClin:#5a3a00;
+  --st-Clinicals:#b6e3c1;  --ink-Clinicals:#114a2a;
+  --st-Exited:#f5b8b8;     --ink-Exited:#5a0e0e;
+  --st-Grad:#9b8bd9;       --ink-Grad:#1c0c4d;
+  --st-Meta:#e9eaee;       --ink-Meta:#3b3f4a;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:var(--bg); color:var(--ink);
+  font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+header.topbar { background:var(--brand); color:white; padding:12px 22px; display:flex; align-items:center; gap:18px; }
+header.topbar img { height:34px; }
+header.topbar h1 { margin:0; font-size:18px; font-weight:600; letter-spacing:.2px; }
+header.topbar .meta { margin-left:auto; font-size:12px; opacity:.85; }
+
+nav.tabs { background:#0a3478; padding:0 22px; display:flex; gap:0; border-bottom:3px solid var(--accent); }
+nav.tabs a { color:#dde6f5; text-decoration:none; padding:10px 18px; font-size:13px; font-weight:600; border-bottom:3px solid transparent; margin-bottom:-3px; }
+nav.tabs a:hover { color:white; background:rgba(255,255,255,.05); }
+nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:rgba(255,255,255,.07); }
+
+.kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:8px; padding:12px 22px 6px 22px; background:#fff; }
+.kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:8px; padding:10px 12px; box-shadow:0 1px 2px rgba(11,61,145,.06); transition:transform .1s, box-shadow .15s, background .15s; }
+.kpi .card.clickable { cursor:pointer; user-select:none; }
+.kpi .card.clickable:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(11,61,145,.18); }
+.kpi .card.active { outline:3px solid var(--accent); outline-offset:1px; background:#fff7e6; }
+.kpi .card.active .label { color:var(--brand); }
+.kpi .card.stage-Enrolled { border-color:#7bb37b;             background:#fbfffb; }
+.kpi .card.stage-BasicSc  { border-color:var(--st-BasicSc);   background:#fbfdff; }
+.kpi .card.stage-PreClin  { border-color:#e6c87a;             background:#fffbf0; }
+.kpi .card.stage-Clinicals{ border-color:var(--st-Clinicals); background:#fbfffc; }
+.kpi .card.stage-Exited   { border-color:var(--st-Exited);    background:#fffbfb; }
+.kpi .card.stage-Grad     { border-color:var(--st-Grad);      background:#fdfbff; }
+.kpi .card .breakdown { display:flex; gap:10px; margin-top:4px; font-size:11px; color:var(--muted); }
+.kpi .card .breakdown b { color:var(--ink); font-weight:700; }
+.kpi .label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+.kpi .value { font-size:22px; font-weight:700; margin-top:2px; color:var(--ink); }
+.kpi .sub { font-size:11px; color:var(--muted); }
+.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:6px 22px; font-size:12px; color:var(--ink); display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
+.kpi-visible .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-size:10px; font-weight:700; margin-right:8px; }
+.kpi-visible .seg { white-space:nowrap; }
+.kpi-visible .seg b { color:var(--brand); font-weight:700; }
+.kpi-visible .seg .name { color:var(--muted); margin-right:4px; font-size:11px; }
+.kpi-visible.stage-PreMed b { color:#102a5c; }
+.kpi-visible.stage-BasicSc b { color:#073447; }
+
+.filters { display:flex; gap:8px 14px; flex-wrap:wrap; padding:10px 22px; background:#fff; border-bottom:1px solid var(--border); align-items:center; position:sticky; top:0; z-index:5; }
+.filters label { font-size:12px; color:var(--muted); font-weight:600; }
+.filters select, .filters input[type=text] { font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; color:var(--ink); box-shadow:0 1px 2px rgba(11,61,145,.08); transition:border-color .15s, box-shadow .15s; }
+.filters select:hover, .filters input[type=text]:hover { border-color:var(--brand-2); }
+.filters select:focus, .filters input[type=text]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(240,165,0,.25); }
+.filters button.clear { font:12px inherit; padding:6px 12px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; }
+.filters button.clear:hover { background:var(--brand); color:white; }
+.filters .count { margin-left:auto; font-size:12px; color:var(--muted); }
+.filters .note { font-size:11px; color:var(--muted); font-style:italic; }
+.filters .group-box { display:inline-flex; gap:6px; align-items:center; padding:4px 10px 4px 8px; border:1px dashed var(--brand); border-radius:8px; background:#f6f9ff; }
+.filters .group-box .group-lbl { font-size:11px; color:var(--brand); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-right:4px; }
+.filters .group-box label { font-weight:500; }
+
+.layout { display:grid; grid-template-columns: minmax(420px, 1.1fr) 2fr; gap:14px; padding:14px 22px; }
+.layout.stacked { grid-template-columns: 1fr; }
+@media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } }
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+
+.roster { max-height: calc(100vh - 280px); overflow:auto; }
+.roster.compact { max-height: 280px; }  /* ~5 rows + sticky header on the stacked layout */
+.roster table { width:100%; border-collapse:collapse; }
+.roster thead th { position:sticky; top:0; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
+.roster thead tr:nth-child(2) th { top:32px; background:#e6ebf3; border-top:1px solid var(--border); }
+.roster thead th.group-hdr { background:var(--brand); color:white; text-align:center; font-weight:700; cursor:default; border-bottom:1px solid white; letter-spacing:.06em; }
+.roster thead th.group-hdr:hover { background:var(--brand); }
+.roster thead th .sortarr { color:var(--muted); margin-left:4px; font-size:10px; }
+.roster thead th.sorted .sortarr { color:var(--accent); }
+.roster tbody tr { cursor:pointer; border-bottom:1px solid #eef0f4; }
+.roster tbody tr:hover { background:#f7f9fd; }
+.roster tbody tr.selected { background:#e8f0fb; }
+.roster td { padding:8px 10px; vertical-align:top; }
+.roster .name { font-weight:600; }
+.roster .meta { color:var(--muted); font-size:11px; }
+.roster .mini-lane { display:flex; gap:1px; margin-top:4px; }
+.roster .mini-lane .cell { width:6px; height:14px; border-radius:1px; background:#eef0f4; }
+
+.status-pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; white-space:nowrap; }
+.status-Enrolled { background:#dcecdc; color:#0f5128; }
+.status-Grad { background:#e7e0fb; color:#36148a; }
+.status-W-Dism, .status-WDism { background:#f7d8d8; color:#7a1414; }
+.status-empty { background:#eee; color:#666; }
+.type-pill { font-size:11px; padding:2px 7px; border-radius:4px; font-weight:600; }
+.type-New { background:#e0eaff; color:#102a5c; }
+.type-XFR { background:#fde4c5; color:#5a3a00; }
+
+.detail { padding:18px 20px; max-height: calc(100vh - 280px); overflow:auto; }
+.layout.stacked .detail { max-height: none; overflow: visible; }
+.detail h2 { margin:0 0 4px 0; font-size:20px; }
+.detail .sid { color:var(--muted); font-size:12px; }
+.detail .group { margin-top:18px; border:1.5px solid var(--brand); border-radius:8px; padding:14px 16px; background:#fbfcfe; box-shadow:0 1px 3px rgba(11,61,145,.06); }
+.detail .group h3 { margin:0 0 10px 0; font-size:12px; color:var(--brand); text-transform:uppercase; letter-spacing:.07em; font-weight:700; border-bottom:2px solid var(--brand); padding-bottom:6px; }
+.detail .kvgrid { display:grid; grid-template-columns: 200px 1fr; row-gap:6px; column-gap:14px; }
+.detail .kvgrid .k { color:var(--muted); }
+.detail .group .crosslink { float:right; font-size:11px; font-weight:500; }
+.detail .group .crosslink a { color:var(--brand-2); text-decoration:none; }
+.detail .group .crosslink a:hover { text-decoration:underline; }
+
+.lastn { display:flex; gap:8px; flex-wrap:wrap; }
+.lastn .sembox { flex:1 1 220px; min-width:200px; padding:10px 12px; border-radius:8px; border:1px solid var(--border); }
+.lastn .sembox .lab { font-size:11px; color:var(--muted); margin-bottom:4px; }
+
+.timeline { display:grid; gap:3px; }
+.timeline .col { display:flex; flex-direction:column; align-items:stretch; }
+.timeline .colhdr { font-size:9px; color:var(--muted); text-align:center; padding:2px 0; border-bottom:1px solid var(--border); margin-bottom:2px; line-height:1.1; height:30px; display:flex; align-items:flex-end; justify-content:center; }
+.timeline .cell { height:54px; border-radius:4px; padding:3px 4px; display:flex; flex-direction:column; gap:2px; overflow:hidden; font-size:9.5px; }
+.timeline .cell.empty { background:#f4f5f8; }
+.timeline .cell.PreMed   { background:var(--st-PreMed);   color:var(--ink-PreMed); }
+.timeline .cell.BasicSc  { background:var(--st-BasicSc);  color:var(--ink-BasicSc); }
+.timeline .cell.PreClin  { background:var(--st-PreClin);  color:var(--ink-PreClin); }
+.timeline .cell.Clinicals{ background:var(--st-Clinicals);color:var(--ink-Clinicals); }
+.timeline .cell.Exited   { background:var(--st-Exited);   color:var(--ink-Exited); }
+.timeline .cell.Grad     { background:var(--st-Grad);     color:white; }
+.timeline .cell.Meta     { background:var(--st-Meta);     color:var(--ink-Meta); }
+.timeline .cell .chip { background:rgba(255,255,255,.55); padding:1px 4px; border-radius:3px; }
+
+.legend-row { display:flex; gap:10px; flex-wrap:wrap; padding:8px 22px; background:#fbfcfe; border-top:1px solid var(--border); font-size:11px; }
+.legend-row .swatch { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:middle; margin-right:4px; }
+
+.note { white-space:pre-wrap; padding:10px; background:#fff8e6; border:1px solid #f0d896; border-radius:6px; font-size:13px; }
+.empty-detail { color:var(--muted); padding:40px; text-align:center; }
+
+.cbse-band { display:inline-block; padding:2px 7px; border-radius:4px; font-weight:600; font-size:12px; }
+.cbse-band.pass { background:#cfeacf; color:#0f5128; }
+.cbse-band.near { background:#fff0c2; color:#7a5a00; }
+.cbse-band.warn { background:#ffd3a8; color:#7a3500; }
+.cbse-band.fail { background:#f7c1c1; color:#7a1414; }
+
+.step-pill { display:inline-block; padding:2px 8px; border-radius:99px; font-weight:600; font-size:11px; }
+.step-passed { background:#dcecdc; color:#0f5128; }
+.step-fail { background:#f7d8d8; color:#7a1414; }
+.step-none { background:#eee; color:#666; }
+
+.history-list { font-size:13px; }
+.history-list .ev { padding:4px 8px; margin:2px 0; border-radius:4px; display:flex; justify-content:space-between; align-items:center; }
+.history-list .ev.pass { background:#dcecdc; color:#0f5128; }
+.history-list .ev.fail { background:#f7d8d8; color:#7a1414; }
+.history-list .ev .tag { font-weight:600; }
+
+@media print {
+  .topbar .meta, .filters, .roster, nav.tabs { display:none; }
+  .layout { grid-template-columns: 1fr; padding:0; }
+  .panel { border:none; }
+  .detail { max-height:none; }
+}
+
+/* Legend / Tags help modal */
+.legend-btn { font:12px inherit; padding:5px 10px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:700; }
+.legend-btn:hover { background:var(--brand); color:white; }
+.legend-modal-bg { position:fixed; inset:0; background:rgba(11,35,51,.42); display:none; align-items:flex-start; justify-content:center; z-index:200; padding:40px 20px; overflow-y:auto; }
+.legend-modal-bg.open { display:flex; }
+.legend-modal { background:white; border-radius:12px; max-width:920px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(11,35,51,.3); }
+.legend-modal header { padding:16px 22px; border-bottom:2px solid var(--brand); display:flex; align-items:center; gap:14px; position:sticky; top:0; background:white; z-index:1; }
+.legend-modal header h2 { margin:0; color:var(--brand); font-size:18px; flex:1; }
+.legend-modal header .close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--muted); padding:4px 10px; border-radius:6px; }
+.legend-modal header .close:hover { background:#f0f3f8; color:var(--ink); }
+.legend-modal .body { padding:14px 22px 22px 22px; }
+.legend-modal .intro { color:var(--muted); font-size:13px; margin-bottom:14px; }
+.legend-stage { margin-top:14px; }
+.legend-stage h3 { margin:0 0 8px 0; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:6px 10px; border-radius:6px; }
+.legend-stage.PreMed h3   { background:var(--st-PreMed);    color:var(--ink-PreMed); }
+.legend-stage.BasicSc h3  { background:var(--st-BasicSc);   color:var(--ink-BasicSc); }
+.legend-stage.PreClin h3  { background:var(--st-PreClin);   color:var(--ink-PreClin); }
+.legend-stage.Clinicals h3{ background:var(--st-Clinicals); color:var(--ink-Clinicals); }
+.legend-stage.Exited h3   { background:var(--st-Exited);    color:var(--ink-Exited); }
+.legend-stage.Grad h3     { background:var(--st-Grad);      color:white; }
+.legend-stage.Meta h3     { background:var(--st-Meta);      color:var(--ink-Meta); }
+.legend-stage table { width:100%; border-collapse:collapse; }
+.legend-stage td { padding:5px 8px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:top; }
+.legend-stage td.tag { width:120px; }
+.legend-stage td.tag .pill { display:inline-block; font-weight:700; padding:2px 8px; border-radius:4px; font-size:12px; border:1px solid; }
+.legend-stage.PreMed   td.tag .pill { background:var(--st-PreMed);    color:var(--ink-PreMed);    border-color:#9ab1ea; }
+.legend-stage.BasicSc  td.tag .pill { background:var(--st-BasicSc);   color:var(--ink-BasicSc);   border-color:#7bbed4; }
+.legend-stage.PreClin  td.tag .pill { background:var(--st-PreClin);   color:var(--ink-PreClin);   border-color:#e6c87a; }
+.legend-stage.Clinicals td.tag .pill{ background:var(--st-Clinicals); color:var(--ink-Clinicals); border-color:#7bb37b; }
+.legend-stage.Exited   td.tag .pill { background:var(--st-Exited);    color:var(--ink-Exited);    border-color:#d68888; }
+.legend-stage.Grad     td.tag .pill { background:var(--st-Grad);      color:white;                border-color:#7765c2; }
+.legend-stage.Meta     td.tag .pill { background:var(--st-Meta);      color:var(--ink-Meta);      border-color:#c5c8d2; }
+</style>
+</head><body>
+<header class="topbar">
+  
+  <h1>AUSOMA Student Journey</h1>
+  <div class="meta">Built 2026-05-07 03:04 · Term Summer 2026</div>
+</header>
+<nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html" class="active">Clinical Rotations</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
+
+<div class="legend-modal-bg" id="legend-modal-bg" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="legend-modal">
+    <header>
+      <h2>Tag Legend</h2>
+      <button class="close" onclick="document.getElementById('legend-modal-bg').classList.remove('open')" aria-label="Close">×</button>
+    </header>
+    <div class="body">
+      <div class="intro">Tags are short codes used in the StudentJourney semester cells to mark milestones, leaves, rotations, and exits. The dashboard groups tags into stages (PreMed → Basic Sciences → Pre-Clinical → Clinicals → Exited / Graduated) which drive the color coding throughout. Click outside this dialog or the × to close.</div>
+      <div class="legend-stage PreMed"><h3>PreMed</h3><table>
+<tr><td class="tag"><span class="pill">PM1</span></td><td>PreMed Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">PM2</span></td><td>PreMed Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">PM3</span></td><td>PreMed Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">PM4</span></td><td>PreMed Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">StartPM</span></td><td>Started PreMed (cohort entry)</td></tr>
+</table></div>
+<div class="legend-stage BasicSc"><h3>Basic Sciences (MD1–MD5)</h3><table>
+<tr><td class="tag"><span class="pill">StartMD</span></td><td>Semester student started with the institution</td></tr>
+<tr><td class="tag"><span class="pill">MD1</span></td><td>Basic Sciences Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">MD2</span></td><td>Basic Sciences Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">MD3</span></td><td>Basic Sciences Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">MD4</span></td><td>Basic Sciences Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">MD5</span></td><td>Basic Sciences Semester 5 (final pre-clinical)</td></tr>
+<tr><td class="tag"><span class="pill">MD</span></td><td>Generic MD-phase shorthand</td></tr>
+<tr><td class="tag"><span class="pill">New</span></td><td>New Student</td></tr>
+<tr><td class="tag"><span class="pill">XFR</span></td><td>Transfer Student</td></tr>
+<tr><td class="tag"><span class="pill">Deferred</span></td><td>Deferred admission</td></tr>
+</table></div>
+<div class="legend-stage PreClin"><h3>Pre-Clinical (post-MD5 / pre-clinical placement)</h3><table>
+<tr><td class="tag"><span class="pill">LOA</span></td><td>Leave of Absence — billable</td></tr>
+<tr><td class="tag"><span class="pill">LOA-F</span></td><td>First Leave of Absence — non-billable (now relabeled as ST)</td></tr>
+<tr><td class="tag"><span class="pill">LOA-M</span></td><td>Medical Leave of Absence</td></tr>
+<tr><td class="tag"><span class="pill">ASF</span></td><td>Academic Standing Fee — student paying to keep enrollment active</td></tr>
+<tr><td class="tag"><span class="pill">IST</span></td><td>Independent Study Time — first 4 months after first MD5, non-billable</td></tr>
+<tr><td class="tag"><span class="pill">ST</span></td><td>Study Time (formerly LOA-F)</td></tr>
+<tr><td class="tag"><span class="pill">S1P</span></td><td>USMLE Step 1 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S1P2</span></td><td>USMLE Step 1 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F</span></td><td>USMLE Step 1 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S1F2</span></td><td>USMLE Step 1 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F3</span></td><td>USMLE Step 1 Failed (3rd attempt)</td></tr>
+</table></div>
+<div class="legend-stage Clinicals"><h3>Clinicals (cores, electives, Step 2, Match)</h3><table>
+<tr><td class="tag"><span class="pill">CC</span></td><td>Clinical Core (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CC1</span></td><td>Clinical Core block 1</td></tr>
+<tr><td class="tag"><span class="pill">CC2</span></td><td>Clinical Core block 2</td></tr>
+<tr><td class="tag"><span class="pill">CC3</span></td><td>Clinical Core block 3</td></tr>
+<tr><td class="tag"><span class="pill">CC4</span></td><td>Clinical Core block 4</td></tr>
+<tr><td class="tag"><span class="pill">CC5</span></td><td>Clinical Core block 5</td></tr>
+<tr><td class="tag"><span class="pill">CC6</span></td><td>Clinical Core block 6</td></tr>
+<tr><td class="tag"><span class="pill">CC7</span></td><td>Clinical Core block 7</td></tr>
+<tr><td class="tag"><span class="pill">CC8</span></td><td>Clinical Core block 8</td></tr>
+<tr><td class="tag"><span class="pill">CC9</span></td><td>Clinical Core block 9</td></tr>
+<tr><td class="tag"><span class="pill">CC10</span></td><td>Clinical Core block 10</td></tr>
+<tr><td class="tag"><span class="pill">CC11</span></td><td>Clinical Core block 11</td></tr>
+<tr><td class="tag"><span class="pill">CC12</span></td><td>Clinical Core block 12</td></tr>
+<tr><td class="tag"><span class="pill">CIM</span></td><td>Internal Medicine Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CSU</span></td><td>Surgery Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CFM</span></td><td>Family Medicine Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">COB</span></td><td>OBGYN Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPE</span></td><td>Pediatrics Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPS</span></td><td>Psychiatry Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE</span></td><td>Clinical Elective (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CE4</span></td><td>Clinical Elective (4 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE6</span></td><td>Clinical Elective (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE8</span></td><td>Clinical Elective (8 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE10</span></td><td>Clinical Elective (10 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">S2P</span></td><td>USMLE Step 2 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S2P2</span></td><td>USMLE Step 2 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2P3</span></td><td>USMLE Step 2 Passed (3rd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F</span></td><td>USMLE Step 2 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S2F1</span></td><td>USMLE Step 2 Failed (1st attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F2</span></td><td>USMLE Step 2 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">ApplMatch</span></td><td>Applied for Match</td></tr>
+<tr><td class="tag"><span class="pill">Matched</span></td><td>Matched into residency</td></tr>
+<tr><td class="tag"><span class="pill">NotMatched</span></td><td>Applied but did not Match in applied year</td></tr>
+</table></div>
+<div class="legend-stage Exited"><h3>Exited</h3><table>
+<tr><td class="tag"><span class="pill">W-Dism</span></td><td>Withdrawn / Dismissed (generic)</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-T</span></td><td>Withdrawn — Transferred Out</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-P</span></td><td>Withdrawn — Personal Reasons</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-F</span></td><td>Withdrawn — Financial</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-A</span></td><td>Dismissed Academically</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-H</span></td><td>Withdrawn — Health</td></tr>
+</table></div>
+<div class="legend-stage Grad"><h3>Graduated</h3><table>
+<tr><td class="tag"><span class="pill">Grad</span></td><td>Semester student graduated</td></tr>
+</table></div>
+<div class="legend-stage Meta"><h3>Milestone tags (overlays)</h3><table>
+<tr><td class="tag"><span class="pill">TargetGrd</span></td><td>Anticipated graduation semester</td></tr>
+<tr><td class="tag"><span class="pill">FW</span></td><td>Fee Waiver</td></tr>
+<tr><td class="tag"><span class="pill">ReAdmit</span></td><td>Readmitted after withdrawal</td></tr>
+</table></div>
+    </div>
+  </div>
+</div>
+
+
+<section class="kpi" id="kpi"></section>
+<section class="kpi-visible" id="kpi-visible"></section>
+<section class="gaps-summary-bar" id="gaps-summary"></section>
+
+<section class="filters" id="filters">
+  <input type="text" id="q" placeholder="Search name or ID…" style="min-width:220px"/>
+  <label>Rotation State:</label>
+  <select id="rstate">
+    <option value="">All Clinicals</option>
+    <option value="active">In active rotation</option>
+    <option value="between">Between rotations</option>
+    <option value="cores-done">Cores complete (48w)</option>
+    <option value="not-started">No rotation data</option>
+  </select>
+  <label>Cores done:</label>
+  <select id="coresdone">
+    <option value="">All</option>
+    <option value="6">All 6 (48w complete)</option>
+    <option value="3-5">Mid-cores (3–5)</option>
+    <option value="0-2">Just started (0–2)</option>
+  </select>
+  <label>Data Gaps:</label>
+  <select id="gapfilter">
+    <option value="">All</option>
+    <option value="any">Has any gap</option>
+    <option value="clean">No gaps</option>
+  </select>
+  <button class="clear" id="clear-filters">Clear</button>
+  <span class="note">Population: students whose Roster milestone is Clinicals</span>
+</section>
+
+<section class="layout stacked">
+  <div class="panel">
+    <div class="roster compact" id="roster"></div>
+  </div>
+  <div class="panel">
+    <div class="detail" id="detail"><div class="empty-detail">Click a student in the list above to see their full clinical rotation map here.</div></div>
+  </div>
+</section>
+
+<section id="orphans" style="padding:14px 22px"></section>
+
+<style>
+.rot-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+.rot-grid.elec { grid-template-columns: repeat(2, 1fr); }
+.rot-cell { border:1.5px solid var(--border); border-radius:8px; padding:10px 12px; background:#fff; }
+.rot-cell.complete { border-color:#7bb37b; background:#f3fbf3; }
+.rot-cell.active { border-color:var(--accent); background:#fff9eb; box-shadow:0 0 0 2px rgba(240,165,0,.18); }
+.rot-cell.scheduled { border-color:#a8c7e6; background:#f4f9ff; }
+.rot-cell.pending { border-color:#e3e6ec; background:#fafbfd; opacity:.85; }
+.rot-cell h4 { margin:0 0 4px 0; font-size:13px; color:var(--brand); display:flex; align-items:center; gap:6px; }
+.rot-cell .badge { font-size:10px; padding:1px 6px; border-radius:99px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+.rot-cell.complete .badge { background:#dcecdc; color:#0f5128; }
+.rot-cell.active .badge { background:var(--accent); color:white; }
+.rot-cell.scheduled .badge { background:#dde6f7; color:#102a5c; }
+.rot-cell.pending .badge { background:#eee; color:#666; }
+.rot-cell .meta { font-size:11px; color:var(--muted); }
+.rot-cell .row { display:grid; grid-template-columns: 90px 1fr; row-gap:3px; column-gap:8px; font-size:12px; margin-top:4px; }
+.rot-cell .row .k { color:var(--muted); }
+.progress-bar { height:14px; border-radius:7px; background:#e3e6ec; overflow:hidden; position:relative; margin-top:6px; }
+.progress-bar .fill { height:100%; background:var(--brand); }
+.progress-bar .inprog { background:var(--accent); height:100%; }
+.progress-bar .stack { display:flex; height:100%; }
+.progress-label { font-size:11px; color:var(--muted); margin-top:3px; }
+.cur-rotation-card { background:linear-gradient(135deg, #fff9eb 0%, #fff4d4 100%); border:1.5px solid var(--accent); border-radius:8px; padding:10px 14px; margin-bottom:14px; }
+.cur-rotation-card .cap { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-bottom:4px; }
+.cur-rotation-card .label { font-size:16px; font-weight:700; }
+.cur-rotation-card .info { font-size:13px; color:var(--ink); margin-top:2px; }
+.orphan-section { background:#fff8e6; border:1px solid #f0d896; border-radius:8px; padding:10px 14px; }
+.orphan-section h3 { margin:0 0 6px 0; font-size:13px; color:#7a5a00; }
+.orphan-section ul { margin:4px 0 0 0; padding-left:18px; font-size:12px; }
+
+.gap-pill { display:inline-block; background:#fff8e6; color:#7a5a00; border:1px solid #f0d896; border-radius:99px; padding:1px 7px; font-size:10px; font-weight:700; margin-left:4px; cursor:help; }
+.gaps-list { margin:0; padding-left:18px; font-size:13px; color:#7a5a00; }
+.gaps-list li { padding:2px 0; }
+.gaps-summary-bar { display:flex; gap:14px; flex-wrap:wrap; padding:10px 14px; background:#fff8e6; border:1px solid #f0d896; border-radius:8px; margin:0 22px 14px 22px; align-items:center; }
+.gaps-summary-bar .lbl { font-size:11px; color:#7a5a00; text-transform:uppercase; letter-spacing:.05em; font-weight:700; }
+.gaps-summary-bar .seg { font-size:12px; color:#5b6677; }
+.gaps-summary-bar .seg b { color:#7a5a00; font-weight:700; font-size:14px; }
+
+.core-chips { display:flex; gap:3px; margin-top:4px; flex-wrap:wrap; }
+.core-chip { font-size:10px; padding:2px 6px; border-radius:4px; font-weight:700; letter-spacing:.02em; border:1px solid var(--border); }
+.core-chip.done    { background:#dcecdc; color:#0f5128; border-color:#7bb37b; }
+.core-chip.active  { background:var(--accent); color:white; border-color:var(--accent); box-shadow:0 0 0 1px rgba(240,165,0,.4); }
+.core-chip.sched   { background:#dde6f7; color:#102a5c; border-color:#a8c7e6; }
+.core-chip.pending { background:#f4f5f8; color:#888; border-color:#e3e6ec; }
+
+.forecast { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+.forecast .col { background:#fff; border:1.5px solid var(--brand); border-radius:8px; padding:10px 12px; }
+.forecast .col h4 { margin:0 0 6px 0; font-size:12px; color:var(--brand); text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid var(--border); padding-bottom:4px; }
+.forecast .col .big { font-size:24px; font-weight:700; color:var(--ink); }
+.forecast .col .lbl { font-size:11px; color:var(--muted); margin-top:-2px; }
+.forecast .col .list { margin-top:8px; font-size:13px; }
+.forecast .col .list .item { padding:4px 8px; margin:2px 0; border-radius:4px; background:#f6f9ff; display:flex; justify-content:space-between; }
+.forecast .col .list .item .wk { color:var(--muted); font-size:11px; }
+.forecast .summary-row { grid-column: 1 / span 2; display:flex; gap:18px; padding:10px 14px; background:#f3f6fb; border-radius:8px; align-items:center; }
+.forecast .summary-row b { color:var(--brand); font-size:18px; font-weight:700; }
+</style>
+
+<script>
+const DATA = {"build_ts":"2026-05-07 03:04","students":[{"sid":2025000021,"name":"Philip Aka","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CPS"],"days_since_md5":null,"start_md_ay":"2025-26","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":null,"step2_pass_sem":null,"rot":{"name":"Philip Aka","sid":2025000021,"row":38,"active":true,"status":"Active (Core, Chicago-AICG)","step1":"Passed","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Chicago","start":"","end":"2026-01-26","weeks":null,"shelf":12,"eval":null,"final_grade":null,"state":"complete-incomplete-data"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":"2025-10-06 00:00:00","final_grade":"2025-12-26 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank","IM: completed but Final Grade blank","SURG: missing Location","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)"]}},{"sid":2022000021,"name":"Mmesoma Anietom","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["ApplMatch"],"days_since_md5":1346,"start_md_ay":"2021-22","start_md_semester":"Summer","step1_passed":"","step1_pass_sem":"Spring 2023","step2_pass_sem":null,"rot":{"name":"Mmesoma Anietom","sid":2022000021,"row":10,"active":false,"status":"Step 2. Rotations Complete","step1":"Passed","step2":"0.56","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Houston TX","start":"","end":"2023-02-13","weeks":null,"shelf":12,"eval":0.51,"final_grade":0.92,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8380000000000001","start":"","end":"","weeks":null,"shelf":"2023-06-16 00:00:00","eval":6,"final_grade":0.45,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.82","start":"","end":"","weeks":null,"shelf":"2023-07-10 00:00:00","eval":"2023-08-18 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.53","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-12-11 00:00:00","final_grade":"2024-03-01 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Houston TX","eval":"2023-08-28 00:00:00","final_grade":"2023-10-06 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Houston TX PES","eval":"2023-10-09 00:00:00","final_grade":"2023-11-17 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.912","start_inferred":"","end":"","weeks":null,"eval":"TX Pinnacle Family Medicine Elective","state":"pending"},{"slot":2,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"2024-04-08 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2024-05-17)","start_inferred":"","end":"","weeks":0,"eval":"Emergency Medicine-LSU 9/29/25","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2025-10-24)","start_inferred":"","end":"","weeks":0,"eval":"Emergency Medicine-LSU 10/27/25","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2025-11-21)","start_inferred":"","end":"","weeks":0,"eval":"Dr Janice Powell - Peds","state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: descriptor blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank"]}},{"sid":2021000019,"name":"Mario Carrasco","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE"],"days_since_md5":1588,"start_md_ay":"2021-22","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":"Summer 2025","step2_pass_sem":null,"rot":{"name":"Mario Carrasco","sid":2021000019,"row":8,"active":false,"status":"LOA for Step 2 (Bon Secours)","step1":"CBSE","step2":"0.45","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Houston TX","start":"","end":"2023-01-09","weeks":null,"shelf":12,"eval":0.5,"final_grade":0.9,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8200000000000001","start":"","end":"","weeks":null,"shelf":"2023-07-28 00:00:00","eval":6,"final_grade":0.49,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.95","start":"","end":"","weeks":null,"shelf":"2024-07-22 00:00:00","eval":"2024-08-30 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":"2025-11-24 00:00:00","final_grade":"2026-02-13 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Houston TX","eval":"2024-09-09 00:00:00","final_grade":"2024-10-18 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Houston TX","eval":"2023-05-01 00:00:00","final_grade":"2023-06-09 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.89","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2026-03-06)","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Location","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank"]}},{"sid":2021000011,"name":"Sarah Craig-Merriman","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE"],"days_since_md5":1711,"start_md_ay":"2020-21","start_md_semester":"Summer","step1_passed":"","step1_pass_sem":"Spring 2022","step2_pass_sem":null,"rot":{"name":"Sarah Craig Merriman","sid":2021000011,"row":5,"active":false,"status":"LOA CCSE and Step 2","step1":"Passed","step2":"0.6","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Chicago IL","start":"","end":"2022-09-12","weeks":null,"shelf":12,"eval":0.58,"final_grade":0.89,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8280000000000001","start":"","end":"","weeks":null,"shelf":"2023-05-26 00:00:00","eval":6,"final_grade":0.61,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.92","start":"","end":"","weeks":null,"shelf":"2023-07-24 00:00:00","eval":"2023-09-01 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.53","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-01-02 00:00:00","final_grade":"2023-03-24 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Michigan","eval":"2023-09-04 00:00:00","final_grade":"2023-10-13 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Michigan","eval":"2023-06-12 00:00:00","final_grade":"2023-07-21 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.88","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"},{"slot":5,"descriptor":"End Date","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 5: missing End Date","Elective 5: Weeks blank"]}},{"sid":2023000005,"name":"Jaskaran Dhaliwal","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE"],"days_since_md5":981,"start_md_ay":"2022-23","start_md_semester":"Summer","step1_passed":"","step1_pass_sem":"Fall 2024","step2_pass_sem":null,"rot":{"name":"Jaskaran Dhaliwal","sid":2023000005,"row":31,"active":true,"status":"Active (Bon Secours)","step1":"Passed","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta - Piedmont","start":"","end":"2025-05-12","weeks":null,"shelf":12,"eval":0.62,"final_grade":null,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"3/7//25","eval":6,"final_grade":0.59,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2025-03-10 00:00:00","eval":"2025-04-18 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.6","start":"","end":"","weeks":null,"shelf":null,"eval":"2025-09-29 00:00:00","final_grade":"2025-12-19 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Atlanta Dr Ahmed","eval":"2025-08-04 00:00:00","final_grade":"2025-09-12 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":null,"shelf":"Bon Secours-Dr Gray","eval":"2026-01-19 00:00:00","final_grade":null,"state":"in-progress"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Final Grade blank","FM: missing Location","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Location","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)"]}},{"sid":2019000050,"name":"Vonni Fauzi","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE"],"days_since_md5":1831,"start_md_ay":"2019-20","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":null,"step2_pass_sem":null,"rot":{"name":"Fauzi Vonni","sid":2019000050,"row":20,"active":true,"status":"Active (Australia)","step1":"Not required","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2024-12-27 00:00:00","eval":6,"final_grade":null,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.91","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":"2024-05-13 00:00:00","final_grade":"2024-08-02 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[{"slot":1,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"Australia ER ","state":"pending"},{"slot":2,"descriptor":"ER","start_inferred":"","end":"","weeks":null,"eval":"2025-01-27 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2025-03-07)","start_inferred":"","end":"","weeks":0,"eval":"Australia Rural ER 3/10/25","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2025-04-18)","start_inferred":"","end":"","weeks":null,"eval":"Australia ER","state":"pending"}],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["FM: missing Location","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Location","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","Elective 1: descriptor blank","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank"]}},{"sid":2021000028,"name":"Ghassan Jibawi","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["ApplMatch"],"days_since_md5":null,"start_md_ay":"2021-22","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":"Fall 2021","step2_pass_sem":null,"rot":{"name":"Ghassan Jibawi","sid":2021000028,"row":3,"active":false,"status":"LOA CCSE and Step 2 (Rotations Complete)","step1":"Passed","step2":"","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Chicago IL","start":"","end":"2021-11-08","weeks":null,"shelf":12,"eval":"N/A","final_grade":null,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"1","start":"","end":"","weeks":null,"shelf":"2022-11-11 00:00:00","eval":6,"final_grade":null,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2022-05-23 00:00:00","eval":"2022-07-01 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":"2022-02-07 00:00:00","final_grade":"2022-04-29 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":null,"eval":"2022-08-22 00:00:00","final_grade":"2022-09-30 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Houston TX PES","eval":"2022-07-04 00:00:00","final_grade":"2022-08-12 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.95","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"},{"slot":2,"descriptor":"Cardiology","start_inferred":"","end":"","weeks":null,"eval":"2021-10-11 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2021-11-05)","start_inferred":"","end":"","weeks":1,"eval":"Pinnacle Houston TX Nephro Dr Pandey12/4/23","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2023-12-29)","start_inferred":"","end":"","weeks":0,"eval":"ID Dr Shaw Waterburry, CT 1/8/24","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2024-02-02)","start_inferred":"","end":"","weeks":null,"eval":"Neuro Dr Gulati Jack 9/23/24","state":"pending"},{"slot":6,"descriptor":"(date-only entry: 2024-10-18)","start_inferred":"","end":"","weeks":0,"eval":"Pulmonolgy Dr. Ahluwalia (Jack) 10/28/24","state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Final Grade blank","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Location","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Location","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank","Elective 6: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 6: missing End Date","Elective 6: Weeks blank"]}},{"sid":2023000020,"name":"Otabek Kushakov","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE"],"days_since_md5":492,"start_md_ay":"2024-25","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":"Spring 2025","step2_pass_sem":null,"rot":{"name":"Otabek Kushakov","sid":2023000020,"row":35,"active":true,"status":"Active","step1":"Passed","step2":"0.63","cc_status":"3","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta - Piedmont","start":"","end":"2025-05-12","weeks":null,"shelf":12,"eval":null,"final_grade":null,"state":"complete-incomplete-data"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2025-09-12 00:00:00","eval":6,"final_grade":0.58,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2025-09-15 00:00:00","eval":"2025-10-24 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":"2026-02-16 00:00:00","final_grade":"2026-05-08 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Dr.Klopper ","eval":"2025-11-10 00:00:00","final_grade":"2025-12-19 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":null,"shelf":"Dr. Morrison - Bon Secours","eval":"2026-01-19 00:00:00","final_grade":"2026-02-06 00:00:00","state":"in-progress"}],"electives":[],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank","IM: completed but Final Grade blank","FM: missing Location","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Location","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Location","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)"]}},{"sid":2022000024,"name":"Marie-Claire Larmonie","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CC"],"days_since_md5":1223,"start_md_ay":"2022-23","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":"Fall 2024","step2_pass_sem":null,"rot":{"name":"Marie Claire Larmonie","sid":2022000024,"row":30,"active":true,"status":"Active (Bon Secours)","step1":"Passed","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Virginia - Bon Secours","start":"","end":"2025-10-06","weeks":null,"shelf":12,"eval":0.69,"final_grade":0.95,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.898","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)"]}},{"sid":2023000040,"name":"Gae Lee","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CC"],"days_since_md5":736,"start_md_ay":"2023-24","start_md_semester":"Spring","step1_passed":"","step1_pass_sem":"Fall 2025","step2_pass_sem":null,"rot":null},{"sid":2023000034,"name":"Nauroze Mir","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["ApplMatch"],"days_since_md5":null,"start_md_ay":"2023-24","start_md_semester":"Summer","step1_passed":"","step1_pass_sem":null,"step2_pass_sem":null,"rot":{"name":"Nauroze Mir","sid":2023000034,"row":19,"active":false,"status":"LOA CCSE and Step 2 (Rotations Complete)","step1":"Passed","step2":"0.68","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Las Vegas","start":"","end":"2024-12-09","weeks":null,"shelf":12,"eval":0.7,"final_grade":0.99,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.932","start":"","end":"","weeks":null,"shelf":"2024-06-14 00:00:00","eval":6,"final_grade":0.79,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.96","start":"","end":"","weeks":null,"shelf":"2024-09-30 00:00:00","eval":"2024-11-08 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.78","start":"","end":"","weeks":null,"shelf":null,"eval":"2024-01-08 00:00:00","final_grade":"2024-03-29 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Dr. Barnett FL (Jack)","eval":"2025-04-21 00:00:00","final_grade":"2025-05-30 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Dr Cazes Tampa (Jack)","eval":"2025-03-10 00:00:00","final_grade":"2025-04-18 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.936","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"},{"slot":2,"descriptor":"IM","start_inferred":"","end":"","weeks":null,"eval":"2025-06-09 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2025-07-18)","start_inferred":"","end":"","weeks":0,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank"]}},{"sid":2020000048,"name":"Olayemi \"Eunice\" Olowomeye ","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE6","Matched"],"days_since_md5":1346,"start_md_ay":"2020-21","start_md_semester":"Spring","step1_passed":"","step1_pass_sem":"Spring 2023","step2_pass_sem":"Fall 2025","rot":{"name":"Eunice Olowomeye","sid":2020000048,"row":11,"active":true,"status":"Active (Electives, Alton Hospital)","step1":"Passed","step2":"0.77","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta, GA","start":"","end":"2023-04-24","weeks":null,"shelf":12,"eval":0.52,"final_grade":1,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.904","start":"","end":"","weeks":null,"shelf":"2023-09-01 00:00:00","eval":6,"final_grade":0.64,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.97","start":"","end":"","weeks":null,"shelf":"2023-10-30 00:00:00","eval":"2023-12-08 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.63","start":"","end":"","weeks":null,"shelf":null,"eval":"2024-01-22 00:00:00","final_grade":"2024-04-12 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Atlanta","eval":"2023-09-04 00:00:00","final_grade":"2023-10-13 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Atlanta Jack","eval":"2023-12-11 00:00:00","final_grade":"2024-01-19 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.8660000000000001","start_inferred":"","end":"","weeks":null,"eval":"Family Medicine Elective Houston","state":"pending"},{"slot":2,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"2026-11-03 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2026-12-26)","start_inferred":"","end":"","weeks":null,"eval":"Dr. Lutan - Cardiology 2/19/26","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2026-03-16)","start_inferred":"","end":"","weeks":null,"eval":"Nephrology-Dr Daniels-Alton Hospital 3/23/26","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2026-04-03)","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: descriptor blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank"]}},{"sid":2022000009,"name":"Yardly Plaisir","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE"],"days_since_md5":1346,"start_md_ay":"2021-22","start_md_semester":"Summer","step1_passed":"","step1_pass_sem":null,"step2_pass_sem":null,"rot":{"name":"Yardly Plaisir","sid":2022000009,"row":21,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":[]}},{"sid":2019000020,"name":"Farah Raza","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE","TargetGrd"],"days_since_md5":2197,"start_md_ay":"2018-19","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":"Spring 2022","step2_pass_sem":null,"rot":{"name":"Farah Raza","sid":2019000020,"row":4,"active":true,"status":"Active (Electives, Louisiana & Atlanta)","step1":"Passed","step2":"","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta, GA","start":"","end":"2022-05-23","weeks":null,"shelf":12,"eval":null,"final_grade":null,"state":"complete-incomplete-data"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.98","start":"","end":"","weeks":null,"shelf":"2022-05-20 00:00:00","eval":6,"final_grade":null,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2022-08-28 00:00:00","eval":"2022-10-07 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-01-02 00:00:00","final_grade":"2023-03-24 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Luisiana","eval":"2023-07-31 00:00:00","final_grade":"2023-09-08 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Atlanta","eval":"2023-04-17 00:00:00","final_grade":"2023-05-26 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.776","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"},{"slot":2,"descriptor":"IM","start_inferred":"","end":"","weeks":null,"eval":"2022-11-21 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2022-12-16)","start_inferred":"","end":"","weeks":1,"eval":"Psychiatry Dr Ismail 1/5/26 ","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2026-02-13)","start_inferred":"","end":"","weeks":null,"eval":"OBGyn Dr Mohsin 2/16/26","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2026-03-27)","start_inferred":"","end":"","weeks":null,"eval":"Internal Medicine Dr Hasso 3/30/26","state":"pending"},{"slot":6,"descriptor":"(date-only entry: 2026-05-22)","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank","IM: completed but Final Grade blank","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Location","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Location","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank","Elective 6: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 6: missing End Date","Elective 6: Weeks blank"]}},{"sid":2019000015,"name":"Mashad Shaikh","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE","TargetGrd"],"days_since_md5":1831,"start_md_ay":"2019-20","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":"Fall 2022","step2_pass_sem":null,"rot":{"name":"Mashad Shaikh","sid":2019000015,"row":9,"active":true,"status":"Active (Electives, Alabama)","step1":"Passed","step2":"0.58","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta, GA","start":"","end":"2022-12-26","weeks":null,"shelf":12,"eval":0.59,"final_grade":1,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.918","start":"","end":"","weeks":null,"shelf":"2023-08-04 00:00:00","eval":6,"final_grade":0.55,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.93","start":"","end":"","weeks":null,"shelf":"2023-10-09 00:00:00","eval":"2023-11-17 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.51","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-03-27 00:00:00","final_grade":"2023-06-16 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Atlanta","eval":"2023-08-14 00:00:00","final_grade":"2023-09-22 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Atlanta Jack","eval":"2023-12-11 00:00:00","final_grade":"2024-01-19 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.8280000000000001","start_inferred":"","end":"","weeks":null,"eval":"Privte, Alabama: Dr Asim Oncology Elective","state":"pending"},{"slot":2,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"2024-12-23 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2025-03-14)","start_inferred":"","end":"","weeks":null,"eval":"Dr. Sehbai Hematology 12/1/25","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2025-12-31)","start_inferred":"","end":"","weeks":1,"eval":"Dr Syed Adnan Ahmed 3/30/26 ","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2026-04-24)","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: descriptor blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank"]}},{"sid":2023000027,"name":"Moneesha Smith","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CC"],"days_since_md5":858,"start_md_ay":"2023-24","start_md_semester":"Fall","step1_passed":"","step1_pass_sem":"Fall 2025","step2_pass_sem":null,"rot":{"name":"Moneesha Smith","sid":2023000027,"row":23,"active":false,"status":"Active - waiting for placement","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta","start":"","end":"2024-07-15","weeks":null,"shelf":12,"eval":0.5,"final_grade":0.94,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.852","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":"Dr. Ahmed - Grayson, GA","eval":"2025-10-06 00:00:00","final_grade":"2025-11-14 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PSYCH: missing Location","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)"]}},{"sid":2024000002,"name":"Saleeha Soofi","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE"],"days_since_md5":736,"start_md_ay":"2023-24","start_md_semester":"Spring","step1_passed":"","step1_pass_sem":"Fall 2024","step2_pass_sem":null,"rot":{"name":"Saleeha Soofi","sid":2024000002,"row":33,"active":false,"status":"LOA","step1":"Passed","step2":"0.72","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Houston","start":"","end":"2025-01-20","weeks":null,"shelf":12,"eval":0.74,"final_grade":0.9,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8680000000000001","start":"","end":"","weeks":null,"shelf":"2025-05-30 00:00:00","eval":6,"final_grade":0.73,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.86","start":"","end":"","weeks":null,"shelf":"2025-06-02 00:00:00","eval":"2025-07-11 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.65","start":"","end":"","weeks":null,"shelf":null,"eval":"2025-07-21 00:00:00","final_grade":"2025-10-10 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Dr.  Storar","eval":"2025-12-15 00:00:00","final_grade":"2025-01-23 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Dr. Morrison - Bon Secours","eval":"2025-10-13 00:00:00","final_grade":"2025-11-21 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"Plastic Surgery-Dr. Kyle Xu-Bon Secours 2/9/26","state":"pending"},{"slot":2,"descriptor":"Plastic Surgery","start_inferred":"","end":"","weeks":null,"eval":"2026-02-09 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2026-03-06)","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: descriptor blank","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank"]}},{"sid":2022000020,"name":"Mahmood Syed","status":"Enrolled","milestone_stage":"Clinicals","milestone_program_tags":["CE","Matched"],"days_since_md5":1346,"start_md_ay":"2021-22","start_md_semester":"Summer","step1_passed":"","step1_pass_sem":"Spring 2023","step2_pass_sem":"Fall 2025","rot":{"name":"Mahmood Syed","sid":2022000020,"row":7,"active":false,"status":"Complete. Waiting for evals","step1":"Passed","step2":"0.61","cc_status":"1","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Houston TX","start":"","end":"2023-01-23","weeks":null,"shelf":12,"eval":0.61,"final_grade":0.89,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8340000000000001","start":"","end":"","weeks":null,"shelf":"2023-06-02 00:00:00","eval":6,"final_grade":0.65,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"1","start":"","end":"","weeks":null,"shelf":"2023-06-12 00:00:00","eval":"2023-07-21 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.59","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-07-24 00:00:00","final_grade":"2023-10-13 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Houston TX","eval":"2023-11-20 00:00:00","final_grade":"2023-12-29 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Houston TX","eval":"2023-10-23 00:00:00","final_grade":"2023-10-28 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.89","start_inferred":"","end":"","weeks":null,"eval":"Jack Houston Cardiology","state":"pending"},{"slot":2,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"2024-05-13 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2024-06-07)","start_inferred":"","end":"","weeks":0,"eval":"Dr. Syed Ahmed -Family Med- 11/17/26","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2026-12-26)","start_inferred":"","end":"","weeks":1,"eval":"IM Geriatrics - Dr. Shaiv Patel - 1/19/26 ","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2030-07-12)","start_inferred":"","end":"","weeks":0,"eval":"Dr. Naqvi - Pulmonology/Critical Care 3/9/26","state":"pending"},{"slot":6,"descriptor":"(date-only entry: 2026-04-03)","start_inferred":"","end":"","weeks":null,"eval":"Dr. Iqbal - Interventional Cardiology 4/6/26","state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: descriptor blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank","Elective 6: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 6: missing End Date","Elective 6: Weeks blank"]}}],"orphan_rotations":[{"name":"Sarah Craig Merriman","sid":2021000011,"row":5,"active":false,"status":"LOA CCSE and Step 2","step1":"Passed","step2":"0.6","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Chicago IL","start":"","end":"2022-09-12","weeks":null,"shelf":12,"eval":0.58,"final_grade":0.89,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8280000000000001","start":"","end":"","weeks":null,"shelf":"2023-05-26 00:00:00","eval":6,"final_grade":0.61,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.92","start":"","end":"","weeks":null,"shelf":"2023-07-24 00:00:00","eval":"2023-09-01 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.53","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-01-02 00:00:00","final_grade":"2023-03-24 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Michigan","eval":"2023-09-04 00:00:00","final_grade":"2023-10-13 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Michigan","eval":"2023-06-12 00:00:00","final_grade":"2023-07-21 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.88","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"},{"slot":5,"descriptor":"End Date","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 5: missing End Date","Elective 5: Weeks blank"]},{"name":"Anthony Blount","sid":2019000045,"row":6,"active":false,"status":"Review","step1":"passed","step2":"0.58","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta, GA","start":"","end":"2022-10-10","weeks":null,"shelf":6,"eval":null,"final_grade":0.79,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8","start":"","end":"","weeks":null,"shelf":"2022-09-30 00:00:00","eval":6,"final_grade":null,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2023-05-22 00:00:00","eval":"2023-06-30 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-12-04 00:00:00","final_grade":"2024-02-23 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Atlanta","eval":"2023-08-14 00:00:00","final_grade":"2023-09-22 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Atlanta Jack","eval":"2024-05-20 00:00:00","final_grade":"2024-06-28 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.796","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2028-05-19)","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Location","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Location","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank"]},{"name":"Eunice Olowomeye","sid":2020000048,"row":11,"active":true,"status":"Active (Electives, Alton Hospital)","step1":"Passed","step2":"0.77","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta, GA","start":"","end":"2023-04-24","weeks":null,"shelf":12,"eval":0.52,"final_grade":1,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.904","start":"","end":"","weeks":null,"shelf":"2023-09-01 00:00:00","eval":6,"final_grade":0.64,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.97","start":"","end":"","weeks":null,"shelf":"2023-10-30 00:00:00","eval":"2023-12-08 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.63","start":"","end":"","weeks":null,"shelf":null,"eval":"2024-01-22 00:00:00","final_grade":"2024-04-12 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Atlanta","eval":"2023-09-04 00:00:00","final_grade":"2023-10-13 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Atlanta Jack","eval":"2023-12-11 00:00:00","final_grade":"2024-01-19 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.8660000000000001","start_inferred":"","end":"","weeks":null,"eval":"Family Medicine Elective Houston","state":"pending"},{"slot":2,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"2026-11-03 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2026-12-26)","start_inferred":"","end":"","weeks":null,"eval":"Dr. Lutan - Cardiology 2/19/26","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2026-03-16)","start_inferred":"","end":"","weeks":null,"eval":"Nephrology-Dr Daniels-Alton Hospital 3/23/26","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2026-04-03)","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: descriptor blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank"]},{"name":"Azad Michael Farr","sid":2021000008,"row":12,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Houston TX","start":"","end":"2023-07-17","weeks":null,"shelf":12,"eval":0.51,"final_grade":0.9,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8220000000000001","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[{"slot":1,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","Elective 1: descriptor blank","Elective 1: missing End Date","Elective 1: Weeks blank"]},{"name":"Zariah Jean","sid":2020000001,"row":13,"active":false,"status":"Graduate","step1":"Passed","step2":"0.73","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Houston TX","start":"","end":"2023-04-03","weeks":null,"shelf":12,"eval":0.58,"final_grade":0.95,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.876","start":"","end":"","weeks":null,"shelf":"2023-09-15 00:00:00","eval":6,"final_grade":0.76,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"1","start":"","end":"","weeks":null,"shelf":"2024-01-15 00:00:00","eval":"2024-02-23 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.69","start":"","end":"","weeks":null,"shelf":null,"eval":"2024-03-04 00:00:00","final_grade":"2024-05-24 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Houston TX Jack","eval":"2023-12-04 00:00:00","final_grade":"2024-01-12 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":null,"eval":"2023-10-16 00:00:00","final_grade":"2023-11-17 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.9460000000000001","start_inferred":"","end":"","weeks":null,"eval":"Jack - Houston ","state":"pending"},{"slot":2,"descriptor":"IM","start_inferred":"","end":"","weeks":null,"eval":"2024-12-30 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2025-02-07)","start_inferred":"","end":"","weeks":0,"eval":"Infectious Dis. Dr Zafaraz Aly Houston 2/10/25","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2025-03-07)","start_inferred":"","end":"","weeks":0,"eval":"Radiology 4/14/25","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2025-05-09)","start_inferred":"","end":"","weeks":1,"eval":"9/2/25 Bon Secours Dr. Innis","state":"pending"},{"slot":6,"descriptor":"(date-only entry: 2025-10-10)","start_inferred":"","end":"","weeks":0,"eval":"Emergency Medicine - LSU Shreveport 10/27/25","state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 6: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 6: missing End Date","Elective 6: Weeks blank"]},{"name":"Jericka Knox","sid":null,"row":14,"active":false,"status":"Preclinical","step1":"CBSE","step2":"0.43","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Tampa General Hospital","start":"","end":"2023-05-01","weeks":null,"shelf":12,"eval":0.52,"final_grade":0.88,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.808","start":"","end":"","weeks":null,"shelf":"2024-05-31 00:00:00","eval":3,"final_grade":null,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.88","start":"","end":"","weeks":null,"shelf":"2024-02-05 00:00:00","eval":"2024-03-15 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.59","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":"Advent Health Orlando","eval":"2024-03-18 00:00:00","final_grade":"2024-04-26 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.886","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","OBGYN: missing Location","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank"]},{"name":"Katherine Castellvi","sid":2020000037,"row":15,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Florida","start":"","end":"2023-05-08","weeks":null,"shelf":12,"eval":null,"final_grade":null,"state":"complete-incomplete-data"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2023-10-20 00:00:00","eval":6,"final_grade":null,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.95","start":"","end":"","weeks":null,"shelf":"2024-05-13 00:00:00","eval":"2024-06-21 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":"Florida Jack","eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":"Tampa FL Jack","eval":"2024-03-11 00:00:00","final_grade":"2024-04-19 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.7360000000000001","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank","IM: completed but Final Grade blank","FM: missing Location","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","PSYCH: missing Location","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Location","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank"]},{"name":"Ghania Moeen","sid":2022000012,"row":16,"active":false,"status":"Preclinical","step1":"","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["Step 1 Status is empty"]},{"name":"Rifat Islam","sid":2020000036,"row":17,"active":false,"status":"Preclinical","step1":"CBSE","step2":"0.3","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta, GA","start":"","end":"2023-05-15","weeks":null,"shelf":12,"eval":0.23,"final_grade":0.96,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8140000000000001","start":"","end":"","weeks":null,"shelf":"2023-09-15 00:00:00","eval":6,"final_grade":0.32,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.96","start":"","end":"","weeks":null,"shelf":"2023-09-18 00:00:00","eval":"2023-10-27 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.23","start":"","end":"","weeks":null,"shelf":null,"eval":"2024-02-05 00:00:00","final_grade":"2024-04-26 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Atlanta, Dr Shakeel Ahmed","eval":"2023-12-11 00:00:00","final_grade":"2024-01-19 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Atlanta, GA","eval":"2023-10-30 00:00:00","final_grade":"2023-12-08 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.772","start_inferred":"","end":"","weeks":null,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank"]},{"name":"Basima Shah","sid":2020000013,"row":18,"active":false,"status":"LOA STEP 2 and shelf exams (Rotations Complete)","step1":"Passed","step2":"0.55","cc_status":"4","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta","start":"","end":"2024-08-12","weeks":null,"shelf":12,"eval":0.52,"final_grade":0.98,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.888","start":"","end":"","weeks":null,"shelf":"2024-06-14 00:00:00","eval":6,"final_grade":0.52,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.97","start":"","end":"","weeks":null,"shelf":"2024-03-25 00:00:00","eval":"2024-05-03 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.54","start":"","end":"","weeks":null,"shelf":null,"eval":"2023-11-20 00:00:00","final_grade":"2024-02-09 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Dr Ahmed Atlanta","eval":"2024-02-12 00:00:00","final_grade":"2024-03-22 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Atlanta, GA, Jack","eval":"2024-06-24 00:00:00","final_grade":"2024-07-19 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.79","start_inferred":"","end":"","weeks":null,"eval":"Atlanta Jack","state":"pending"},{"slot":2,"descriptor":"ID","start_inferred":"","end":"","weeks":null,"eval":"2024-11-11 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2024-12-20)","start_inferred":"","end":"","weeks":0,"eval":"Family Med Ibraheem (Jack) 2/3/25","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2025-03-14)","start_inferred":"","end":"","weeks":0,"eval":"Cardiology (Jack) Dr. Tocxa 3/17/25","state":"pending"},{"slot":5,"descriptor":"(date-only entry: 2025-04-11)","start_inferred":"","end":"","weeks":0,"eval":"Dr. Oriojioke Pulmonology 4/21/25 ","state":"pending"},{"slot":6,"descriptor":"(date-only entry: 2025-05-16)","start_inferred":"","end":"","weeks":1,"eval":"Nephrology 5/26/25","state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 3: Weeks blank","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date","Elective 4: Weeks blank","Elective 5: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 5: missing End Date","Elective 5: Weeks blank","Elective 6: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 6: missing End Date"]},{"name":"Jennifer Becerra","sid":2019000070,"row":22,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Tampa FL","start":"","end":"2024-07-08","weeks":null,"shelf":12,"eval":null,"final_grade":0.93,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank"]},{"name":"Bhavesh Chauhan","sid":2023000025,"row":24,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Tampa FL","start":"","end":"2024-07-15","weeks":null,"shelf":12,"eval":0.45,"final_grade":0.92,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.8260000000000001","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)"]},{"name":"Ketpha Casimir","sid":2023000022,"row":25,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Tampa FL","start":"","end":"2024-07-08","weeks":null,"shelf":12,"eval":0.57,"final_grade":0.91,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.842","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)"]},{"name":"Ralph Cadet","sid":2020000044,"row":26,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Jack Atl","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2024-10-11 00:00:00","eval":6,"final_grade":null,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.98","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: missing End Date","IM: Weeks blank (target 12w)","FM: missing Location","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)"]},{"name":"Marina Flores","sid":2021000025,"row":27,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Houston TX","start":"","end":"2024-08-19","weeks":null,"shelf":12,"eval":0.34,"final_grade":0.8,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.7080000000000002","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)"]},{"name":"Anastasia (Stacy) Burns","sid":2023000001,"row":28,"active":false,"status":"Complete","step1":"Step 1 Passed","step2":"0.64","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Atlanta","start":"","end":"2024-10-07","weeks":null,"shelf":12,"eval":0.55,"final_grade":1,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"0.91","start":"","end":"","weeks":null,"shelf":"2024-10-04 00:00:00","eval":6,"final_grade":0.66,"state":"in-progress"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"0.98","start":"","end":"","weeks":null,"shelf":"2025-03-31 00:00:00","eval":"2025-05-09 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.55","start":"","end":"","weeks":null,"shelf":null,"eval":"2025-01-06 00:00:00","final_grade":"2025-03-28 00:00:00","state":"in-progress"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"12","start":"","end":"","weeks":0,"shelf":"Dr Ahmed Atlanta","eval":"2025-05-12 00:00:00","final_grade":"2025-06-20 00:00:00","state":"in-progress"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"6","start":"","end":"","weeks":0,"shelf":"Dr. Thrasher (Jack)","eval":"2025-06-30 00:00:00","final_grade":"2025-08-01 00:00:00","state":"in-progress"}],"electives":[{"slot":1,"descriptor":"0.904","start_inferred":"","end":"","weeks":null,"eval":"Beth Israel Lahey Hospital, MA IM: No Fee","state":"pending"},{"slot":2,"descriptor":"","start_inferred":"","end":"","weeks":null,"eval":"2024-07-29 00:00:00","state":"pending"},{"slot":3,"descriptor":"(date-only entry: 2024-08-03)","start_inferred":"","end":"","weeks":95,"eval":"CT hepatology GI 8/5/24","state":"pending"},{"slot":4,"descriptor":"(date-only entry: 2024-08-09)","start_inferred":"","end":"","weeks":95,"eval":null,"state":"pending"}],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","FM: missing Start Date","FM: missing End Date","FM: Weeks blank (target 6w)","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","PSYCH: missing Start Date","PSYCH: missing End Date","PSYCH: Weeks blank (target 6w)","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)","Elective 1: missing End Date","Elective 1: Weeks blank","Elective 2: descriptor blank","Elective 2: missing End Date","Elective 2: Weeks blank","Elective 3: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 3: missing End Date","Elective 4: descriptor is date-only \u2014 missing specialty/preceptor/location","Elective 4: missing End Date"]},{"name":"Ernst Saintcloud","sid":2020000060,"row":29,"active":false,"status":"Preclinical","step1":"CBSE","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"New York Jack","start":"","end":"2024-09-02","weeks":null,"shelf":12,"eval":null,"final_grade":0.95,"state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank"]},{"name":"Lilah Sanduby","sid":2025000002,"row":34,"active":false,"status":"","step1":"Passed","step2":"","cc_status":"6","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"(Jack)FL","start":"","end":"2025-05-12","weeks":null,"shelf":8,"eval":null,"final_grade":"98%%","state":"complete"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"2025-03-31 00:00:00","eval":"2025-05-09 00:00:00","final_grade":6,"state":"in-progress"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"0.75","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":"Dr. Falzone @ Wellington-FL","eval":"2025-10-21 00:00:00","final_grade":"2025-11-28 00:00:00","state":"in-progress"}],"electives":[],"core_done":1,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["Status field is empty","IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank","PED: missing Location","PED: missing Start Date","PED: missing End Date","PED: Weeks blank (target 6w)","SURG: missing Start Date","SURG: missing End Date","SURG: Weeks blank (target 12w)","OBGYN: missing Location","OBGYN: missing Start Date","OBGYN: missing End Date","OBGYN: Weeks blank (target 6w)"]},{"name":"Rafael Seba","sid":null,"row":37,"active":true,"status":"Active (Core, Bon Secours)","step1":"Passed","step2":"","cc_status":"","cores":[{"code":"IM","name":"Internal Medicine","target_weeks":12,"location":"Virginia - Bon Secours","start":"","end":"2025-12-07","weeks":null,"shelf":12,"eval":null,"final_grade":null,"state":"complete-incomplete-data"},{"code":"FM","name":"Family Medicine","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PED","name":"Pediatrics","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"SURG","name":"Surgery","target_weeks":12,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"PSYCH","name":"Psychiatry","target_weeks":6,"location":"","start":"","end":"","weeks":0,"shelf":null,"eval":null,"final_grade":null,"state":"pending"},{"code":"OBGYN","name":"OB-GYN","target_weeks":6,"location":"","start":"","end":"","weeks":null,"shelf":null,"eval":null,"final_grade":null,"state":"pending"}],"electives":[],"core_done":0,"core_total":6,"elec_done":0,"elec_total":6,"weeks_complete":0,"weeks_in_progress":0,"cur_rotation_label":"","cur_rotation_loc":"","cur_rotation_preceptor":"","cur_rotation_end":"","gaps":["IM: missing Start Date","IM: Weeks blank (target 12w)","IM: completed but Evaluation blank","IM: completed but Final Grade blank"]}],"totals":{"total":185,"Enrolled":86,"PreMed":6,"BasicSc":23,"PreClin":39,"Clinicals":18,"Exited":88,"Grad":11,"Other":0,"PreClin_IST":5,"PreClin_ASF":32,"PreClin_LOA":2,"PreClin_Step":0},"ay_opts":["2018-19","2019-20","2020-21","2021-22","2022-23","2023-24","2024-25","2025-26"],"total_program_weeks":72,"total_core_weeks":48,"total_elective_weeks":24,"core_specs":[{"code":"IM","name":"Internal Medicine","weeks":12,"col":7},{"code":"FM","name":"Family Medicine","weeks":6,"col":14},{"code":"PED","name":"Pediatrics","weeks":6,"col":21},{"code":"SURG","name":"Surgery","weeks":12,"col":28},{"code":"PSYCH","name":"Psychiatry","weeks":6,"col":35},{"code":"OBGYN","name":"OB-GYN","weeks":6,"col":42}]};
+
+let selectedSid = null;
+let sortKey = "default", sortDir = 1;
+
+function statusClass(s) { return s ? ("status-"+s.replace(/\s+/g,"").replace(/[^A-Za-z0-9-]/g,"")) : "status-empty"; }
+
+function studentMatchesFilters(t) {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  if (q && !(t.name.toLowerCase().includes(q) || String(t.sid).includes(q))) return false;
+  const rs = document.getElementById("rstate").value;
+  if (rs === "active") { if (!(t.rot && t.rot.cur_rotation_label)) return false; }
+  else if (rs === "between") { if (t.rot && t.rot.cur_rotation_label) return false; if (!t.rot) return false; }
+  else if (rs === "cores-done") { if (!(t.rot && t.rot.core_done === t.rot.core_total)) return false; }
+  else if (rs === "not-started") { if (t.rot) return false; }
+  const cd = document.getElementById("coresdone").value;
+  if (cd) {
+    const n = t.rot ? t.rot.core_done : 0;
+    if (cd === "6" && n !== 6) return false;
+    if (cd === "3-5" && (n < 3 || n > 5)) return false;
+    if (cd === "0-2" && (n < 0 || n > 2)) return false;
+  }
+  const gf = document.getElementById("gapfilter").value;
+  if (gf === "any") { if (!t.rot || !t.rot.gaps || !t.rot.gaps.length) return false; }
+  else if (gf === "clean") { if (t.rot && t.rot.gaps && t.rot.gaps.length) return false; }
+  return true;
+}
+
+function visibleTotals(visible) {
+  const t = { total:visible.length, active:0, between:0, coresDone:0, noData:0, weeksDone:0, weeksTotal:0 };
+  for (const s of visible) {
+    if (!s.rot) { t.noData++; continue; }
+    if (s.rot.cur_rotation_label) t.active++;
+    else if (s.rot.weeks_complete > 0 && s.rot.core_done < s.rot.core_total) t.between++;
+    if (s.rot.core_done === s.rot.core_total) t.coresDone++;
+    t.weeksDone += s.rot.weeks_complete || 0;
+    t.weeksTotal += DATA.total_program_weeks;
+  }
+  return t;
+}
+
+function renderKPI(visible) {
+  const T = DATA.totals;
+  const allTrack = DATA.students;
+  const activeNow = allTrack.filter(t => t.rot && t.rot.cur_rotation_label).length;
+  const between = allTrack.filter(t => t.rot && !t.rot.cur_rotation_label && t.rot.weeks_complete > 0 && t.rot.core_done < t.rot.core_total).length;
+  const coresDone = allTrack.filter(t => t.rot && t.rot.core_done === t.rot.core_total).length;
+  const noData = allTrack.filter(t => !t.rot).length;
+  const totalTrack = allTrack.length;
+  const grad = T.Grad;
+  document.getElementById("kpi").innerHTML = `
+    <div class="card stage-Clinicals"><div class="label">Clinical-track</div><div class="value">${totalTrack}</div><div class="sub">post-MD5</div></div>
+    <div class="card stage-Clinicals" style="border-color:var(--accent)"><div class="label">In Active Rotation</div><div class="value">${activeNow}</div><div class="sub">today</div></div>
+    <div class="card stage-PreClin"><div class="label">Between Rotations</div><div class="value">${between}</div><div class="sub">cores incomplete</div></div>
+    <div class="card stage-Clinicals"><div class="label">Cores Complete</div><div class="value">${coresDone}</div><div class="sub">all 6 done</div></div>
+    <div class="card stage-Grad"><div class="label">Graduated</div><div class="value">${grad}</div></div>
+    <div class="card" style="border-color:#a8a8a8"><div class="label">No Rotation Data</div><div class="value">${noData}</div><div class="sub">in source sheet</div></div>
+  `;
+  const v = visibleTotals(visible);
+  const pct = v.weeksTotal ? Math.round(v.weeksDone / v.weeksTotal * 100) : 0;
+  document.getElementById("kpi-visible").innerHTML = `
+    <span class="lbl">In view</span>
+    <span class="seg"><span class="name">Total</span><b>${v.total}</b></span>
+    <span class="seg"><span class="name">Active</span><b>${v.active}</b></span>
+    <span class="seg"><span class="name">Between</span><b>${v.between}</b></span>
+    <span class="seg"><span class="name">Cores done</span><b>${v.coresDone}</b></span>
+    <span class="seg"><span class="name">No data</span><b>${v.noData}</b></span>
+    <span class="seg"><span class="name">Weeks done</span><b>${v.weeksDone} / ${v.weeksTotal}</b> <span style="color:var(--muted);font-size:10px">(${pct}%)</span></span>
+  `;
+}
+
+function sortVisible(visible) {
+  if (sortKey === "default") {
+    visible.sort((a,b)=>{
+      const aa = a.rot && a.rot.cur_rotation_label ? 0 : 1;
+      const bb = b.rot && b.rot.cur_rotation_label ? 0 : 1;
+      if (aa !== bb) return aa - bb;
+      const wa = a.rot ? a.rot.weeks_complete : 0;
+      const wb = b.rot ? b.rot.weeks_complete : 0;
+      return wb - wa;
+    });
+    return;
+  }
+  const cmp = {
+    name:      (a,b) => a.name.localeCompare(b.name),
+    rotnow:    (a,b) => ((a.rot && a.rot.cur_rotation_label)||"").localeCompare(((b.rot && b.rot.cur_rotation_label)||"")),
+    preceptor: (a,b) => ((a.rot && a.rot.cur_rotation_preceptor)||"").localeCompare(((b.rot && b.rot.cur_rotation_preceptor)||"")),
+    endate:    (a,b) => ((a.rot && a.rot.cur_rotation_end)||"").localeCompare(((b.rot && b.rot.cur_rotation_end)||"")),
+    coreswk:   (a,b) => coreWeeksDone(a.rot) - coreWeeksDone(b.rot),
+    elecwk:    (a,b) => elecWeeksDone(a.rot) - elecWeeksDone(b.rot),
+    weeks:     (a,b) => ((a.rot && a.rot.weeks_complete)||0) - ((b.rot && b.rot.weeks_complete)||0),
+  }[sortKey];
+  if (cmp) visible.sort((a,b) => sortDir * cmp(a,b));
+}
+
+function coreChips(r) {
+  if (!r) return '<span class="meta">no data</span>';
+  return r.cores.map(c => {
+    let cls = 'core-chip';
+    let icon = '';
+    if (c.state === 'complete' || c.state === 'complete-incomplete-data') { cls += ' done'; icon = '✓ '; }
+    else if (c.state === 'active') { cls += ' active'; icon = '● '; }
+    else if (c.state === 'scheduled') { cls += ' sched'; icon = '◷ '; }
+    else { cls += ' pending'; }
+    return `<span class="${cls}" title="${c.name} · ${c.state}">${icon}${c.code}</span>`;
+  }).join(' ');
+}
+
+function coreWeeksDone(r) {
+  if (!r) return 0;
+  return r.cores.reduce((a, c) => a + (c.state==='complete' || c.state==='complete-incomplete-data' ? (c.weeks||c.target_weeks||0) : 0), 0);
+}
+function elecWeeksDone(r) {
+  if (!r) return 0;
+  return r.electives.reduce((a, e) => a + (e.state==='complete' ? (e.weeks||0) : 0), 0);
+}
+
+function renderRoster(visible) {
+  const arrow = (c) => `<span class="sortarr">${sortKey===c?(sortDir>0?"▲":"▼"):"↕"}</span>`;
+  const cls = (c) => sortKey===c ? "sorted" : "";
+  let html = `<table><thead>
+    <tr>
+      <th rowspan="2" class="${cls('name')}" data-sort="name">Student${arrow('name')}</th>
+      <th colspan="4" class="group-hdr">Current Rotation</th>
+      <th rowspan="2" class="${cls('coreswk')}" data-sort="coreswk">Cores (of ${DATA.total_core_weeks}w)${arrow('coreswk')}</th>
+      <th rowspan="2" class="${cls('elecwk')}" data-sort="elecwk">Electives (of ${DATA.total_elective_weeks}w)${arrow('elecwk')}</th>
+      <th rowspan="2" class="${cls('weeks')}" data-sort="weeks">Total (of ${DATA.total_program_weeks}w)${arrow('weeks')}</th>
+    </tr>
+    <tr>
+      <th class="${cls('rotnow')}" data-sort="rotnow">Core / Elective${arrow('rotnow')}</th>
+      <th class="${cls('preceptor')}" data-sort="preceptor">Preceptor${arrow('preceptor')}</th>
+      <th class="${cls('endate')}" data-sort="endate">End Date${arrow('endate')}</th>
+      <th>Location</th>
+    </tr>
+  </thead><tbody>`;
+  visible.forEach(t => {
+    const r = t.rot;
+    const wks = r ? r.weeks_complete : 0;
+    const total = DATA.total_program_weeks;
+    const pct = Math.round((wks / total) * 100);
+    const wkInProg = r ? (r.weeks_in_progress || 0) : 0;
+    const inProgPct = Math.round((wkInProg / total) * 100);
+    const curRot = r && r.cur_rotation_label;
+    const curLoc = r && r.cur_rotation_loc;
+    const cwks = coreWeeksDone(r);
+    const ewks = elecWeeksDone(r);
+    const corePct = Math.round((cwks / DATA.total_core_weeks) * 100);
+    const elecPct = Math.round((ewks / DATA.total_elective_weeks) * 100);
+    const curEnd = r && r.cur_rotation_end;
+    const endDays = curEnd ? Math.ceil((new Date(curEnd) - new Date()) / 86400000) : null;
+    const endTag = curEnd
+      ? `<div>${curEnd}</div><div class="meta">${endDays > 0 ? `in ${endDays}d` : (endDays===0 ? 'today' : `${-endDays}d ago`)}</div>`
+      : '<span class="meta">—</span>';
+    const gapCount = (r && r.gaps) ? r.gaps.length : 0;
+    const gapPill = gapCount ? `<span class="gap-pill" title="${gapCount} data gap${gapCount>1?'s':''} — see detail panel">⚠ ${gapCount}</span>` : '';
+    const curPreceptor = r && r.cur_rotation_preceptor;
+    html += `<tr data-sid="${t.sid}" class="${selectedSid===t.sid?'selected':''}">
+      <td><div class="name">${t.name}${gapPill}</div><div class="meta">${t.sid} · ${t.start_md_ay||'?'} ${t.start_md_semester||''}</div></td>
+      <td>${curRot ? `<strong>${curRot}</strong>` : (r ? '<span class="meta">— between —</span>' : '<span class="meta">no data</span>')}</td>
+      <td>${curPreceptor ? `<div style="font-size:12px">${curPreceptor}</div>` : '<span class="meta">—</span>'}</td>
+      <td>${endTag}</td>
+      <td>${curLoc ? `<div style="font-size:12px">${curLoc}</div>` : '—'}</td>
+      <td>
+        <div><strong>${cwks}</strong> / ${DATA.total_core_weeks}w <span class="meta">${corePct}%</span></div>
+        <div class="core-chips">${coreChips(r)}</div>
+      </td>
+      <td>
+        <div><strong>${ewks}</strong> / ${DATA.total_elective_weeks}w <span class="meta">${elecPct}%</span></div>
+        <div class="meta">${r ? `${r.elec_done}/${r.elec_total} slots filled` : '—'}</div>
+      </td>
+      <td>
+        <div><strong>${wks}</strong> / ${total}w <span class="meta">${pct}%</span></div>
+        <div class="progress-bar"><div class="stack" style="width:100%"><div class="fill" style="width:${pct}%"></div><div class="inprog" style="width:${inProgPct}%"></div></div></div>
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  const el = document.getElementById("roster");
+  el.innerHTML = html;
+  el.querySelectorAll("thead th[data-sort]").forEach(th => {
+    th.onclick = () => { const k=th.dataset.sort; if (sortKey===k) sortDir=-sortDir; else { sortKey=k; sortDir=1; } render(); };
+  });
+  el.querySelectorAll("tr[data-sid]").forEach(tr => {
+    tr.onclick = () => { selectedSid = Number(tr.dataset.sid); render(); };
+  });
+}
+
+function fmtRange(sd, ed) {
+  if (!sd && !ed) return '—';
+  return `${sd||'?'} → ${ed||'?'}`;
+}
+function fmtGrade(g) {
+  if (g === null || g === undefined || g === '') return '—';
+  const n = Number(g);
+  if (isFinite(n) && n <= 1) return (n*100).toFixed(0)+'%';
+  return String(g);
+}
+
+function renderDetail(t) {
+  const det = document.getElementById("detail");
+  if (!t) { det.innerHTML='<div class="empty-detail">Click a student in the list above to see their full clinical rotation map here.</div>'; return; }
+  const r = t.rot;
+  const total = DATA.total_program_weeks;
+  const wks = r ? r.weeks_complete : 0;
+  const inProg = r ? (r.weeks_in_progress || 0) : 0;
+  const pct = Math.round((wks / total) * 100);
+  const inProgPct = Math.round((inProg / total) * 100);
+
+  let coresHtml = '';
+  if (r) {
+    coresHtml = '<div class="rot-grid">' + r.cores.map(c => `
+      <div class="rot-cell ${c.state}">
+        <h4>${c.code} <span style="color:var(--muted);font-weight:500">· ${c.name}</span> <span class="badge">${c.state.replace('-incomplete-data','')}</span></h4>
+        <div class="meta">${c.target_weeks}-week target</div>
+        ${c.location ? `<div class="row"><div class="k">Location</div><div>${c.location}</div></div>`:''}
+        ${c.start || c.end ? `<div class="row"><div class="k">Dates</div><div>${fmtRange(c.start, c.end)}</div></div>`:''}
+        ${c.weeks ? `<div class="row"><div class="k">Weeks done</div><div>${c.weeks}</div></div>`:''}
+        ${c.shelf!==null && c.shelf!==undefined ? `<div class="row"><div class="k">Shelf</div><div>${fmtGrade(c.shelf)}</div></div>`:''}
+        ${c.eval!==null && c.eval!==undefined ? `<div class="row"><div class="k">Evaluation</div><div>${fmtGrade(c.eval)}</div></div>`:''}
+        ${c.final_grade!==null && c.final_grade!==undefined ? `<div class="row"><div class="k">Final Grade</div><div><strong>${fmtGrade(c.final_grade)}</strong></div></div>`:''}
+      </div>
+    `).join('') + '</div>';
+  } else {
+    coresHtml = '<div class="empty-detail">No rotation data for this student in the Clinical Rotation sheet.</div>';
+  }
+
+  let elecHtml = '';
+  if (r && r.electives.length) {
+    elecHtml = '<div class="rot-grid elec">' + r.electives.map(e => `
+      <div class="rot-cell ${e.state}">
+        <h4>Elective ${e.slot} <span class="badge">${e.state}</span></h4>
+        <div style="font-size:13px;font-weight:600;margin:4px 0">${e.descriptor||'(unspecified)'}</div>
+        ${e.end ? `<div class="row"><div class="k">End date</div><div>${e.end}</div></div>`:''}
+        ${e.weeks ? `<div class="row"><div class="k">Weeks</div><div>${e.weeks}</div></div>`:''}
+        ${e.eval!==null && e.eval!==undefined ? `<div class="row"><div class="k">Evaluation</div><div>${fmtGrade(e.eval)}</div></div>`:''}
+      </div>
+    `).join('') + '</div>';
+  } else if (r) {
+    elecHtml = '<div class="empty-detail" style="padding:14px">No electives recorded yet.</div>';
+  }
+
+  det.innerHTML = `
+    <h2>${t.name}</h2>
+    <div class="sid">Student ID ${t.sid} · Status: ${t.status||'—'} · ${t.start_md_ay||'?'} ${t.start_md_semester||''}</div>
+
+    ${r && r.cur_rotation_label ? `
+    <div class="cur-rotation-card">
+      <div class="cap">Currently rotating</div>
+      <div class="label">${r.cur_rotation_label}</div>
+      <div class="info">${r.cur_rotation_loc||''}${r.cur_rotation_end?` · ends ${r.cur_rotation_end}`:''}</div>
+    </div>` : ''}
+
+    <div class="group">
+      <h3>Progress
+        <span class="crosslink"><a href="index.html#sid=${t.sid}">View full journey →</a> · <a href="AUSOMA_Student_Academic_Metrics.html#sid=${t.sid}">Academic metrics →</a></span>
+      </h3>
+      <div class="kvgrid">
+        <div class="k">Cores complete</div><div><strong>${r ? r.core_done : 0}</strong> of ${r ? r.core_total : 6}</div>
+        <div class="k">Electives complete</div><div><strong>${r ? r.elec_done : 0}</strong> of ${r ? r.elec_total : 6}</div>
+        <div class="k">Weeks complete</div><div><strong>${wks}</strong> of ${total} <span style="color:var(--muted)">(${pct}%)</span></div>
+        <div class="k">Weeks in progress</div><div>${inProg}</div>
+        <div class="k">Step 1</div><div>${(t.step1_passed||t.step1_pass_sem)?`<span class="step-pill step-passed">Passed${t.step1_pass_sem?` · ${t.step1_pass_sem}`:''}</span>`:'<span class="step-pill step-none">Not yet</span>'}</div>
+        <div class="k">Step 2</div><div>${t.step2_pass_sem?`<span class="step-pill step-passed">Passed · ${t.step2_pass_sem}</span>`:'<span class="step-pill step-none">Not yet</span>'}</div>
+        ${r && r.status ? `<div class="k">Rotation Status (sheet)</div><div>${r.status}</div>`:''}
+        ${r && r.cc_status ? `<div class="k">Core Clinical Status</div><div>${r.cc_status}</div>`:''}
+      </div>
+      <div class="progress-bar" style="height:18px;border-radius:9px;margin-top:10px">
+        <div class="stack" style="width:100%">
+          <div class="fill" style="width:${pct}%"></div>
+          <div class="inprog" style="width:${inProgPct}%"></div>
+        </div>
+      </div>
+      <div class="progress-label">${wks} weeks complete${inProg?` + ${inProg} in progress`:''} / ${total} required (cores ${DATA.total_core_weeks}w + electives ${DATA.total_elective_weeks}w)</div>
+    </div>
+
+    <div class="group">
+      <h3>Journey Forecast — Year 3 / Year 4 Planning</h3>
+      ${(function(){
+        if (!r) return '<div class="empty-detail">No rotation data — cannot forecast.</div>';
+        const remCores = r.cores.filter(c => c.state !== 'complete' && c.state !== 'complete-incomplete-data');
+        const remCoreWeeks = remCores.reduce((a,c) => a + (c.target_weeks||0), 0);
+        const cwksDone = coreWeeksDone(r);
+        const ewksDone = elecWeeksDone(r);
+        const remElecWeeks = Math.max(0, DATA.total_elective_weeks - ewksDone);
+        const totalRem = remCoreWeeks + remElecWeeks;
+        const totalDone = r.weeks_complete;
+        const pctDone = Math.round(totalDone / DATA.total_program_weeks * 100);
+        return `
+          <div class="forecast">
+            <div class="col">
+              <h4>Cores remaining</h4>
+              <div class="big">${remCoreWeeks}w</div>
+              <div class="lbl">${remCores.length} core rotation${remCores.length!==1?'s':''} left of 6</div>
+              <div class="list">
+                ${remCores.length ? remCores.map(c => `<div class="item"><span><strong>${c.code}</strong> · ${c.name}</span><span class="wk">${c.target_weeks}w</span></div>`).join('')
+                                  : '<div class="item" style="background:#dcecdc;color:#0f5128">✓ All 6 core rotations complete</div>'}
+              </div>
+            </div>
+            <div class="col">
+              <h4>Electives remaining</h4>
+              <div class="big">${remElecWeeks}w</div>
+              <div class="lbl">${ewksDone} of ${DATA.total_elective_weeks}w scheduled / done · ${r.elec_done}/${r.elec_total} slots filled</div>
+              <div class="list">
+                ${remElecWeeks > 0 ? `<div class="item"><span>Open elective weeks to schedule</span><span class="wk">${remElecWeeks}w</span></div>` : '<div class="item" style="background:#dcecdc;color:#0f5128">✓ All 24 elective weeks accounted for</div>'}
+              </div>
+            </div>
+            <div class="summary-row">
+              <span><span class="lbl" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Total Remaining</span><br><b>${totalRem}w</b> of ${DATA.total_program_weeks}w</span>
+              <span><span class="lbl" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Already Complete</span><br><b>${totalDone}w</b> (${pctDone}%)</span>
+              <span><span class="lbl" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700">Approx. months left</span><br><b>${(totalRem/4.33).toFixed(1)}</b> mo at full pace</span>
+            </div>
+          </div>
+        `;
+      })()}
+    </div>
+
+    <div class="group">
+      <h3>Core Rotations</h3>
+      ${coresHtml}
+    </div>
+
+    <div class="group">
+      <h3>Elective Rotations</h3>
+      ${elecHtml}
+    </div>
+
+    ${r && r.gaps && r.gaps.length ? `
+    <div class="group" style="border-color:#f0d896;background:#fffaee">
+      <h3 style="color:#7a5a00;border-bottom-color:#f0d896">⚠ Data Gaps in Source Sheet (${r.gaps.length})</h3>
+      <ul class="gaps-list">
+        ${r.gaps.map(g => `<li>${g}</li>`).join('')}
+      </ul>
+      <div class="meta" style="margin-top:6px">Update <em>Clinical Rotation Student Details Replacement.xlsx</em>, Current Students sheet (row ${r.row}), then re-run <code>build_journey_page.py</code>.</div>
+    </div>` : (r ? `
+    <div class="group" style="border-color:#7bb37b;background:#f3fbf3">
+      <h3 style="color:#0f5128;border-bottom-color:#7bb37b">✓ Source data complete — no gaps detected</h3>
+    </div>` : '')}
+  `;
+}
+
+function render() {
+  const visible = DATA.students.filter(studentMatchesFilters);
+  sortVisible(visible);
+  renderKPI(visible);
+  renderGapsSummary(visible);
+  renderRoster(visible);
+  renderDetail(DATA.students.find(s => s.sid === selectedSid) || null);
+}
+
+// Top-of-page gap summary — count by category across visible students
+function renderGapsSummary(visible) {
+  const tracked = visible.filter(t => t.rot);
+  const noData = visible.filter(t => !t.rot);
+  const withGaps = tracked.filter(t => t.rot.gaps && t.rot.gaps.length);
+  const totalGaps = withGaps.reduce((a, t) => a + t.rot.gaps.length, 0);
+  // Categorize
+  const cats = { evals:0, shelf:0, finalGrade:0, ccref:0, weeks:0, location:0, dates:0, descriptor:0, status:0 };
+  for (const t of withGaps) {
+    for (const g of t.rot.gaps) {
+      if (g.includes("Evaluation blank")) cats.evals++;
+      else if (g.includes("Shelf blank")) cats.shelf++;
+      else if (g.includes("Final Grade")) cats.finalGrade++;
+      else if (g.includes("#REF")) cats.ccref++;
+      else if (g.includes("Weeks=") || g.includes("Weeks blank")) cats.weeks++;
+      else if (g.includes("Location")) cats.location++;
+      else if (g.includes("Date")) cats.dates++;
+      else if (g.includes("descriptor") || g.includes("Descriptor")) cats.descriptor++;
+      else if (g.includes("Status")) cats.status++;
+    }
+  }
+  const el = document.getElementById("gaps-summary");
+  if (!visible.length) { el.style.display='none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = `
+    <span class="lbl">Source-data gaps (visible)</span>
+    <span class="seg"><b>${noData.length}</b> students with no rotation record</span>
+    <span class="seg"><b>${withGaps.length}</b> with at least one gap</span>
+    <span class="seg"><b>${totalGaps}</b> total gaps flagged</span>
+    ${cats.evals ? `<span class="seg">Eval blank: <b>${cats.evals}</b></span>`:''}
+    ${cats.shelf ? `<span class="seg">Shelf blank: <b>${cats.shelf}</b></span>`:''}
+    ${cats.finalGrade ? `<span class="seg">Final grade blank: <b>${cats.finalGrade}</b></span>`:''}
+    ${cats.ccref ? `<span class="seg">CC Status #REF!: <b>${cats.ccref}</b></span>`:''}
+    ${cats.weeks ? `<span class="seg">Weeks issue: <b>${cats.weeks}</b></span>`:''}
+    ${cats.location ? `<span class="seg">Location blank: <b>${cats.location}</b></span>`:''}
+    ${cats.dates ? `<span class="seg">Dates blank: <b>${cats.dates}</b></span>`:''}
+    ${cats.descriptor ? `<span class="seg">Elective descriptor issue: <b>${cats.descriptor}</b></span>`:''}
+  `;
+}
+
+// Orphans section
+function renderOrphans() {
+  if (!DATA.orphan_rotations || !DATA.orphan_rotations.length) return;
+  document.getElementById("orphans").innerHTML = `
+    <div class="orphan-section">
+      <h3>⚠ ${DATA.orphan_rotations.length} rotation record(s) didn't match a StudentJourney student</h3>
+      <ul>${DATA.orphan_rotations.map(r => `<li><strong>${r.name}</strong> — ${r.status||''} (rotation sheet row ${r.row})</li>`).join('')}</ul>
+      <div class="meta">Fix the spreadsheet name or add an alias in build_journey_page.py NAME_ALIAS.</div>
+    </div>
+  `;
+}
+
+document.getElementById("q").addEventListener("input", render);
+["rstate","coresdone","gapfilter"].forEach(id => document.getElementById(id).addEventListener("change", render));
+document.getElementById("clear-filters").onclick = () => {
+  document.getElementById("q").value = "";
+  ["rstate","coresdone","gapfilter"].forEach(id => document.getElementById(id).value = "");
+  sortKey = "default"; sortDir = 1;
+  render();
+};
+
+const sidM = location.hash.match(/sid=(\d+)/);
+if (sidM) selectedSid = Number(sidM[1]);
+
+renderOrphans();
+render();
+</script>
+</body></html>
