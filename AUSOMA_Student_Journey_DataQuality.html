@@ -86,6 +86,12 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .roster .rot-cell.dim { color:var(--muted); }
 .roster .rot-cell .date { color:var(--muted); font-size:10.5px; }
 .roster .group-divider { border-left:2px solid var(--brand); }
+.roster-tabs { display:flex; gap:0; padding:8px 12px 0 12px; background:#f0f3f8; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:3; }
+.roster-tabs button { background:transparent; border:1px solid transparent; border-bottom:none; padding:7px 16px; font:600 12px/1 system-ui, sans-serif; color:var(--muted); cursor:pointer; border-radius:6px 6px 0 0; letter-spacing:.04em; text-transform:uppercase; }
+.roster-tabs button:hover { color:var(--ink); }
+.roster-tabs button.active { background:white; color:var(--brand); border-color:var(--border); border-bottom-color:white; margin-bottom:-1px; box-shadow:0 -1px 0 var(--brand) inset; }
+.roster-tabs .spacer { flex:1; }
+.roster-tabs .hint { font:500 11px/1.6 system-ui, sans-serif; color:var(--muted); padding:7px 6px; }
 .roster thead th .sortarr { color:var(--muted); margin-left:4px; font-size:10px; }
 .roster thead th.sorted .sortarr { color:var(--accent); }
 .roster tbody tr { cursor:pointer; border-bottom:1px solid #eef0f4; }
@@ -203,7 +209,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Built 2026-05-11 20:57 · Term Summer 2026</div>
+  <div class="meta">Built 2026-05-11 21:10 · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
