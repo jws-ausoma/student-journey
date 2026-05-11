@@ -28,8 +28,8 @@ nav.tabs a { color:#dde6f5; text-decoration:none; padding:10px 18px; font-size:1
 nav.tabs a:hover { color:white; background:rgba(255,255,255,.05); }
 nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:rgba(255,255,255,.07); }
 
-.kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:8px; padding:12px 22px 6px 22px; background:#fff; }
-.kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:8px; padding:10px 12px; box-shadow:0 1px 2px rgba(11,61,145,.06); transition:transform .1s, box-shadow .15s, background .15s; }
+.kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:6px; padding:6px 22px 4px 22px; background:#fff; }
+.kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:5px 10px; box-shadow:0 1px 2px rgba(11,61,145,.06); transition:transform .1s, box-shadow .15s, background .15s; }
 .kpi .card.clickable { cursor:pointer; user-select:none; }
 .kpi .card.clickable:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(11,61,145,.18); }
 .kpi .card.active { outline:3px solid var(--accent); outline-offset:1px; background:#fff7e6; }
@@ -40,12 +40,12 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .kpi .card.stage-Clinicals{ border-color:var(--st-Clinicals); background:#fbfffc; }
 .kpi .card.stage-Exited   { border-color:var(--st-Exited);    background:#fffbfb; }
 .kpi .card.stage-Grad     { border-color:var(--st-Grad);      background:#fdfbff; }
-.kpi .card .breakdown { display:flex; gap:10px; margin-top:4px; font-size:11px; color:var(--muted); }
+.kpi .card .breakdown { display:flex; gap:10px; margin-top:2px; font-size:10.5px; color:var(--muted); line-height:1.2; }
 .kpi .card .breakdown b { color:var(--ink); font-weight:700; }
-.kpi .label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
-.kpi .value { font-size:22px; font-weight:700; margin-top:2px; color:var(--ink); }
-.kpi .sub { font-size:11px; color:var(--muted); }
-.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:6px 22px; font-size:12px; color:var(--ink); display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
+.kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1.1; }
+.kpi .value { font-size:18px; font-weight:700; margin-top:1px; color:var(--ink); line-height:1.1; }
+.kpi .sub { font-size:10.5px; color:var(--muted); line-height:1.2; }
+.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:4px 22px; font-size:12px; color:var(--ink); display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
 .kpi-visible .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-size:10px; font-weight:700; margin-right:8px; }
 .kpi-visible .seg { white-space:nowrap; }
 .kpi-visible .seg b { color:var(--brand); font-weight:700; }
@@ -71,8 +71,8 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 @media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } }
 .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
 
-.roster { max-height: calc(100vh - 280px); overflow:auto; }
-.roster.compact { max-height: 280px; }  /* ~5 rows + sticky header on the stacked layout */
+.roster { max-height: calc(100vh - 200px); overflow:auto; }
+.roster.compact { max-height: calc(100vh - 380px); min-height:340px; }  /* stacked layout: still leaves room for the detail panel below */
 .roster table { width:100%; border-collapse:collapse; }
 .roster thead th { position:sticky; top:0; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
 .roster thead tr:nth-child(2) th { top:32px; background:#e6ebf3; border-top:1px solid var(--border); }
@@ -217,7 +217,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Built 2026-05-11 21:58 · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-11 18:06 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
