@@ -102,7 +102,9 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .roster thead th.sorted .sortarr { color:var(--accent); }
 .roster tbody tr { cursor:pointer; border-bottom:1px solid #eef0f4; }
 .roster tbody tr:hover { background:#f7f9fd; }
-.roster tbody tr.selected { background:#e8f0fb; }
+.roster tbody tr.selected { background:#dbe7f9; box-shadow: inset 4px 0 0 var(--brand), inset -1px 0 0 var(--brand); }
+.roster tbody tr.selected:hover { background:#cfdef5; }
+.roster tbody tr.selected td .name { color:var(--brand); }
 .roster td { padding:8px 10px; vertical-align:top; }
 .roster .name { font-weight:600; }
 .roster .meta { color:var(--muted); font-size:11px; }
@@ -215,7 +217,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Built 2026-05-11 21:39 · Term Summer 2026</div>
+  <div class="meta">Built 2026-05-11 21:50 · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
