@@ -74,8 +74,11 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .roster { max-height: calc(100vh - 200px); overflow:auto; }
 .roster.compact { max-height: calc(100vh - 380px); min-height:340px; }  /* stacked layout: still leaves room for the detail panel below */
 .roster table { width:100%; border-collapse:collapse; }
-.roster thead th { position:sticky; top:0; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
-.roster thead tr:nth-child(2) th { top:32px; background:#e6ebf3; border-top:1px solid var(--border); }
+/* Sticky headers — row 1 sits below the tab strip (~36px tall), row 2 sits
+   below row 1 (~32px tall). Both rows freeze at the top of the scroll
+   container so they remain visible as the user scrolls through students. */
+.roster thead th { position:sticky; top:36px; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
+.roster thead tr:nth-child(2) th { top:68px; background:#e6ebf3; border-top:1px solid var(--border); }
 .roster thead th.group-hdr { background:var(--brand); color:white; text-align:center; font-weight:700; cursor:default; border-bottom:1px solid white; letter-spacing:.06em; }
 .roster thead th.group-hdr:hover { background:var(--brand); }
 .roster thead th.group-hdr.prev { background:#6b7a93; }
@@ -92,6 +95,10 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .roster .rot-cell.ending-soon .badge-soon { display:inline-block; background:#e08a00; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
 .roster .rot-cell.ending-very-soon { background:#ffe1dd; }
 .roster .rot-cell.ending-very-soon .badge-soon { background:#c0382c; }
+/* Stuck student: previous rotation ended >30 days ago AND no current AND no scheduled next */
+.roster .rot-cell.stuck { background:#fbe1dd; color:#7a1414; }
+.roster .rot-cell.stuck.dim { color:#7a1414; }
+.roster .rot-cell.stuck .badge-stuck { display:inline-block; background:#c0382c; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
 .roster-tabs { display:flex; gap:0; padding:8px 12px 0 12px; background:#f0f3f8; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:3; }
 .roster-tabs button { background:transparent; border:1px solid transparent; border-bottom:none; padding:7px 16px; font:600 12px/1 system-ui, sans-serif; color:var(--muted); cursor:pointer; border-radius:6px 6px 0 0; letter-spacing:.04em; text-transform:uppercase; }
 .roster-tabs button:hover { color:var(--ink); }
@@ -217,7 +224,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-05-11 18:06 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-11 18:15 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
