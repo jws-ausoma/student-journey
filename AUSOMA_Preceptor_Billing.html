@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AUSOMA · Preceptor Billing</title>
+<style>
+:root { --brand:#0a3478; --brand-2:#1656b8; --accent:#f0a500; --ink:#1a2533; --muted:#6b7888; --border:#d8dce4; --panel:#ffffff; }
+body { margin:0; font:13px/1.4 -apple-system, system-ui, sans-serif; color:var(--ink); background:#f5f7fb; }
+header { background:#0a3478; color:white; padding:14px 22px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+header h1 { margin:0; font-size:18px; }
+header .meta { color:#cfd6e6; font-size:12px; margin-left:auto; }
+header .actions { display:flex; gap:8px; }
+header .actions button { background:rgba(255,255,255,.12); color:white; border:1px solid rgba(255,255,255,.4); padding:6px 12px; border-radius:6px; font:12px inherit; font-weight:600; cursor:pointer; }
+header .actions button:hover { background:rgba(255,255,255,.22); border-color:white; }
+.kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:8px; padding:12px 22px; background:#fff; border-bottom:1px solid var(--border); }
+.kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:8px 12px; }
+.kpi .card.paid { border-color:#0f7a2e; background:#f3fbf3; }
+.kpi .card.unpaid { border-color:#c0382c; background:#fff5f4; }
+.kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; }
+.kpi .value { font-size:22px; font-weight:700; color:var(--ink); margin-top:2px; }
+.kpi .sub { color:var(--muted); font-size:11px; margin-top:1px; }
+.filters { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start; padding:10px 22px; background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:4; }
+.filters .grp { display:flex; align-items:center; gap:6px; }
+.filters label { font-size:12px; color:var(--muted); font-weight:600; }
+.filters input, .filters select { font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; }
+.filters .clear { font:12px inherit; padding:6px 12px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; }
+.filters .clear:hover { background:var(--brand); color:white; }
+.filters .count { margin-left:auto; font-size:12px; color:var(--muted); align-self:center; }
+/* Custom multi-select for Location */
+.multi-loc { position:relative; }
+.multi-loc .trigger { display:inline-flex; align-items:center; gap:6px; font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; cursor:pointer; min-width:160px; }
+.multi-loc .trigger:hover { background:#f3f6fb; }
+.multi-loc .trigger .badge { background:var(--brand); color:white; font-size:11px; font-weight:700; padding:1px 7px; border-radius:99px; }
+.multi-loc .panel { position:absolute; top:calc(100% + 4px); left:0; background:white; border:1.5px solid var(--brand); border-radius:6px; min-width:280px; max-width:380px; max-height:300px; display:none; flex-direction:column; box-shadow:0 6px 20px rgba(11,52,120,.18); z-index:10; }
+.multi-loc.open .panel { display:flex; }
+.multi-loc .panel input.search { margin:8px; padding:5px 8px; border:1px solid var(--border); border-radius:4px; font:12px inherit; }
+.multi-loc .panel .list { overflow-y:auto; flex:1; padding:2px 8px 6px; }
+.multi-loc .panel .list label { display:flex; align-items:center; gap:6px; padding:4px 4px; font-size:12px; cursor:pointer; border-radius:3px; color:var(--ink); font-weight:400; }
+.multi-loc .panel .list label:hover { background:#f3f6fb; }
+.multi-loc .panel .actions { display:flex; justify-content:space-between; border-top:1px solid var(--border); padding:6px 8px; font-size:11px; }
+.multi-loc .panel .actions button { background:none; border:none; color:var(--brand); font-weight:600; cursor:pointer; font:11px inherit; }
+.multi-loc .panel .actions button:hover { text-decoration:underline; }
+table.billing { width:100%; border-collapse:collapse; background:white; font-size:12px; }
+table.billing thead th { background:#0a3478; color:white; padding:8px 10px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; cursor:pointer; user-select:none; position:sticky; top:62px; }
+table.billing thead th .arr { color:#ffffffaa; margin-left:4px; }
+table.billing thead th.sorted .arr { color:var(--accent); }
+table.billing tbody td { padding:6px 10px; border-bottom:1px solid #eef0f4; }
+table.billing tbody tr:hover { background:#f7f9fd; }
+table.billing td.num { text-align:right; }
+.pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; }
+.pill.paid { background:#dff5e0; color:#0f5128; }
+.pill.unpaid { background:#fbe1dd; color:#7a1414; }
+.pill.eval-sub { background:#dff5e0; color:#0f5128; }
+.pill.eval-pend { background:#fff4d6; color:#7a5a00; }
+.pill.kind-core { background:#e0eaff; color:#102a5c; font-size:10px; }
+.pill.kind-elective { background:#fde4c5; color:#5a3a00; font-size:10px; }
+.note { padding:18px 22px; color:var(--muted); font-size:12px; }
+/* Hide $ mode: blanks out costs but keeps the layout */
+body.hide-money .col-money, body.hide-money .kpi-money { visibility:hidden; }
+body.hide-money .col-money::after, body.hide-money .kpi-money::after { content:"—"; visibility:visible; color:#aaa; }
+body.hide-money .kpi-money::after { display:inline-block; padding-left:4px; }
+/* Print-friendly */
+@media print {
+  body { background:white; }
+  header { background:white !important; color:#0a3478 !important; padding:8px 0; border-bottom:1px solid #ccc; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  header .actions, .filters { display:none !important; }
+  .kpi { padding:8px 0; gap:6px; }
+  .kpi .card { border-color:#aaa !important; background:white !important; }
+  table.billing thead th { background:#222 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; position:static; }
+  table.billing { font-size:10.5px; }
+  table.billing tbody td { padding:4px 6px; }
+  .pill { border:1px solid #999; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .note { padding:6px 0; }
+  @page { size:landscape; margin:0.4in; }
+}
+</style>
+</head><body>
+<header>
+  <h1>AUSOMA · Preceptor Billing</h1>
+  <div class="actions">
+    <button id="toggle-money">Hide $</button>
+    <button id="print">🖨 Print</button>
+  </div>
+  <div class="meta">Last Updated 2026-05-12 16:15 AST · Rate <span class="kpi-money">$400</span>/wk · Standalone (not linked from main nav)</div>
+</header>
+
+<section class="kpi" id="kpi"></section>
+
+<section class="filters">
+  <div class="grp"><input type="text" id="q" placeholder="Search student, preceptor, location, specialty…" style="min-width:280px"/></div>
+  <div class="grp">
+    <label>Location:</label>
+    <div class="multi-loc" id="loc-multi">
+      <button type="button" class="trigger" id="loc-trigger">All locations <span class="badge" id="loc-count">0</span></button>
+      <div class="panel">
+        <input type="text" class="search" id="loc-search" placeholder="Filter locations…"/>
+        <div class="list" id="loc-list"></div>
+        <div class="actions">
+          <button type="button" id="loc-all">Select all</button>
+          <button type="button" id="loc-none">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grp"><label>Preceptor:</label><select id="f-prec"><option value="">All</option></select></div>
+  <div class="grp"><label>Type:</label>
+    <select id="f-kind">
+      <option value="">All</option>
+      <option value="Core">Core</option>
+      <option value="Elective">Elective</option>
+    </select>
+  </div>
+  <div class="grp"><label>Billing:</label>
+    <select id="f-paid">
+      <option value="">All</option>
+      <option value="paid">Paid</option>
+      <option value="unpaid">Unpaid (Pending)</option>
+    </select>
+  </div>
+  <div class="grp"><label>Evaluation:</label>
+    <select id="f-eval">
+      <option value="">All</option>
+      <option value="submitted">Submitted</option>
+      <option value="pending">Pending</option>
+    </select>
+  </div>
+  <div class="grp"><label>Rotation State:</label>
+    <select id="f-state">
+      <option value="">All</option>
+      <option value="complete">Complete</option>
+      <option value="active">Active</option>
+      <option value="scheduled">Scheduled</option>
+      <option value="pending">Pending</option>
+    </select>
+  </div>
+  <button class="clear" id="clear">Clear</button>
+  <span class="count" id="count"></span>
+</section>
+
+<table class="billing" id="t"><thead><tr id="hd"></tr></thead><tbody id="bd"></tbody></table>
+<div class="note">Cost = <span class="kpi-money">weeks × $400</span>. Only rotations whose Preceptor Billing cell is marked <b>Paid</b> or <b>Pending</b> are listed; everything else is excluded as not yet invoiceable. Evaluation column shows whether the preceptor has submitted the Evaluation Result (cores) or Final Grade (electives) — required before payment.</div>
+
+<script>
+const DATA = {"rows":[{"student_name":"Jean, Zariah","student_id":2020000001,"kind":"Elective","code":"E4","name":"Emergency Medicine","specialty":"Emergency Medicine","preceptor":"Dr. Innis","location":"Virginia - Bon Secours","start":"2025-09-02","end":"2025-10-10","weeks":6,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":2400},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr. Scott Brown","location":"Virginia - Bon Secours","start":"2025-10-06","end":"2025-12-26","weeks":12,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":4800},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"PSYCH","name":"Psychiatry","specialty":"Psychiatry","preceptor":"Dr. Mitchell T Storar","location":"Virginia - Bon Secours","start":"2026-04-13","end":"2026-05-22","weeks":6,"state":"active","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-02-27","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Dhaliwal, Jaskaran","student_id":2023000005,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-02-27","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Dhaliwal, Jaskaran","student_id":2023000005,"kind":"Elective","code":"E1","name":"Nephrology","specialty":"Nephrology","preceptor":"Dr. Patel","location":"Virginia - Bon Secours","start":"2026-03-23","end":"2026-04-17","weeks":4,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":1600},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"SURG","name":"Surgery","specialty":"Surgery","preceptor":"Dr. Yeshtokin","location":"Virginia - Bon Secours","start":"2025-07-21","end":"2025-10-10","weeks":12,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":4800},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"PSYCH","name":"Psychiatry","specialty":"Psychiatry","preceptor":"Dr.  Storar","location":"Virginia - Bon Secours","start":"2025-12-15","end":"2025-01-23","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":true,"cost":2400},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2025-10-13","end":"2025-11-21","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Elective","code":"E1","name":"Plastic Surgery","specialty":"Plastic Surgery","preceptor":"Dr. Kyle Xu","location":"Virginia - Bon Secours","start":"2026-02-09","end":"2026-03-06","weeks":4,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":1600},{"student_name":"Lee, Gae","student_id":2023000040,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr.Scott-Brown, Dr.Li","location":"Virginia - Bon Secours","start":"2026-03-09","end":"2026-05-29","weeks":12,"state":"active","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800},{"student_name":"Kushakov, Otabek","student_id":2023000020,"kind":"Core","code":"SURG","name":"Surgery","specialty":"Surgery","preceptor":"Dr. Youssef","location":"Virginia - Bon Secours","start":"2026-02-16","end":"2026-05-08","weeks":12,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800},{"student_name":"Kushakov, Otabek","student_id":2023000020,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-02-06","weeks":3,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":1200},{"student_name":"Seba, Rafeal","student_id":2025000016,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr. Beverly","location":"Virginia - Bon Secours","start":"2025-12-07","end":"2026-02-27","weeks":12,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800}],"locations":["Virginia - Bon Secours"],"preceptors":["Dr.  Storar","Dr. Beverly","Dr. Gray and Dr. Morrison","Dr. Innis","Dr. Kyle Xu","Dr. Mitchell T Storar","Dr. Morrison","Dr. Patel","Dr. Scott Brown","Dr. Yeshtokin","Dr. Youssef","Dr.Scott-Brown, Dr.Li"],"rate":400,"build_ts":"2026-05-12 16:15 AST"};
+const RATE = DATA.rate;
+const cols = [
+  { key:"student_name", label:"Student" },
+  { key:"kind",         label:"Type" },
+  { key:"code",         label:"Rotation" },
+  { key:"specialty",    label:"Specialty / Block" },
+  { key:"preceptor",    label:"Preceptor" },
+  { key:"location",     label:"Location" },
+  { key:"start",        label:"Start" },
+  { key:"end",          label:"End" },
+  { key:"weeks",        label:"Weeks", num:true },
+  { key:"cost",         label:"Cost ($)", num:true, money:true },
+  { key:"state",        label:"Rotation State" },
+  { key:"eval_submitted", label:"Evaluation" },
+  { key:"billing_status", label:"Billing" },
+];
+let sortKey = "student_name", sortDir = 1;
+
+// Multi-select state for Location
+const selectedLocs = new Set();
+
+function fmtMoney(n) { return n.toLocaleString("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 }); }
+
+function matchesRow(r) {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  if (q) {
+    const hay = [r.student_name, r.preceptor, r.location, r.specialty, r.code].filter(Boolean).join(" ").toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  if (selectedLocs.size > 0 && !selectedLocs.has(r.location)) return false;
+  const fp = document.getElementById("f-prec").value;
+  if (fp && r.preceptor !== fp) return false;
+  const fk = document.getElementById("f-kind").value;
+  if (fk && r.kind !== fk) return false;
+  const fb = document.getElementById("f-paid").value;
+  if (fb === "paid" && !r.paid) return false;
+  if (fb === "unpaid" && r.paid) return false;
+  const fe = document.getElementById("f-eval").value;
+  if (fe === "submitted" && !r.eval_submitted) return false;
+  if (fe === "pending" && r.eval_submitted) return false;
+  const fs = document.getElementById("f-state").value;
+  if (fs && r.state !== fs) return false;
+  return true;
+}
+
+function sortRows(rs) {
+  const cmp = (a, b) => {
+    const va = a[sortKey], vb = b[sortKey];
+    if (typeof va === "number" && typeof vb === "number") return va - vb;
+    if (typeof va === "boolean" && typeof vb === "boolean") return (va?1:0) - (vb?1:0);
+    return String(va||"").localeCompare(String(vb||""));
+  };
+  rs.sort((a, b) => sortDir * cmp(a, b));
+}
+
+function renderHeader() {
+  const hd = document.getElementById("hd");
+  hd.innerHTML = cols.map(c => {
+    const cls = [sortKey === c.key ? "sorted" : "", c.money ? "col-money" : ""].filter(Boolean).join(" ");
+    const arr = sortKey === c.key ? (sortDir > 0 ? "▲" : "▼") : "↕";
+    return `<th class="${cls}" data-key="${c.key}">${c.label}<span class="arr">${arr}</span></th>`;
+  }).join("");
+  hd.querySelectorAll("th").forEach(th => {
+    th.onclick = () => {
+      const k = th.dataset.key;
+      if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+      render();
+    };
+  });
+}
+
+function renderKPIs(visible) {
+  const total = visible.length;
+  const paidRows = visible.filter(r => r.paid);
+  const unpaidRows = visible.filter(r => !r.paid);
+  const paidWks = paidRows.reduce((a,b) => a + (b.weeks||0), 0);
+  const unpaidWks = unpaidRows.reduce((a,b) => a + (b.weeks||0), 0);
+  const paidCost = paidRows.reduce((a,b) => a + (b.cost||0), 0);
+  const unpaidCost = unpaidRows.reduce((a,b) => a + (b.cost||0), 0);
+  document.getElementById("kpi").innerHTML = `
+    <div class="card"><div class="label">Rotations in view</div><div class="value">${total}</div><div class="sub">across ${new Set(visible.map(v=>v.student_id)).size} students</div></div>
+    <div class="card paid"><div class="label">Paid</div><div class="value">${paidRows.length}</div><div class="sub">${paidWks}w · <span class="kpi-money">${fmtMoney(paidCost)}</span></div></div>
+    <div class="card unpaid"><div class="label">Unpaid (Pending)</div><div class="value">${unpaidRows.length}</div><div class="sub">${unpaidWks}w · <span class="kpi-money">${fmtMoney(unpaidCost)}</span></div></div>
+    <div class="card"><div class="label">Total cost (all)</div><div class="value kpi-money">${fmtMoney(paidCost + unpaidCost)}</div><div class="sub">${paidWks + unpaidWks}w × <span class="kpi-money">${fmtMoney(RATE)}</span>/wk</div></div>
+  `;
+}
+
+function render() {
+  const visible = DATA.rows.filter(matchesRow);
+  sortRows(visible);
+  renderHeader();
+  renderKPIs(visible);
+  document.getElementById("count").textContent = `${visible.length} of ${DATA.rows.length} rotations`;
+  const bd = document.getElementById("bd");
+  bd.innerHTML = visible.map(r => {
+    const kindCls = r.kind === "Core" ? "kind-core" : "kind-elective";
+    const paidPill = r.paid
+      ? `<span class="pill paid">Paid</span>`
+      : `<span class="pill unpaid">Pending</span>`;
+    const evalPill = r.eval_submitted
+      ? `<span class="pill eval-sub">Submitted</span>`
+      : `<span class="pill eval-pend">Pending</span>`;
+    return `<tr>
+      <td>${r.student_name}</td>
+      <td><span class="pill ${kindCls}">${r.kind}</span></td>
+      <td>${r.code}</td>
+      <td>${r.specialty || '—'}</td>
+      <td>${r.preceptor || '<span style="color:#888">—</span>'}</td>
+      <td>${r.location || '<span style="color:#888">—</span>'}</td>
+      <td>${r.start || '<span style="color:#888">—</span>'}</td>
+      <td>${r.end || '<span style="color:#888">—</span>'}</td>
+      <td class="num">${r.weeks || ''}</td>
+      <td class="num col-money">${r.weeks ? fmtMoney(r.cost) : '—'}</td>
+      <td>${r.state}</td>
+      <td>${evalPill}</td>
+      <td>${paidPill}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ---- Multi-select Location wiring ----
+function buildLocList(filterText) {
+  const list = document.getElementById("loc-list");
+  const ft = (filterText || "").trim().toLowerCase();
+  list.innerHTML = DATA.locations
+    .filter(l => !ft || l.toLowerCase().includes(ft))
+    .map(l => {
+      const checked = selectedLocs.has(l) ? "checked" : "";
+      return `<label><input type="checkbox" value="${l}" ${checked}/>${l}</label>`;
+    }).join("");
+  list.querySelectorAll("input[type=checkbox]").forEach(cb => {
+    cb.onchange = () => {
+      if (cb.checked) selectedLocs.add(cb.value); else selectedLocs.delete(cb.value);
+      updateLocTrigger();
+      render();
+    };
+  });
+}
+function updateLocTrigger() {
+  const trig = document.getElementById("loc-trigger");
+  const count = selectedLocs.size;
+  trig.firstChild.textContent = count === 0 ? "All locations " :
+    count === 1 ? Array.from(selectedLocs)[0] + " " : `${count} locations `;
+  document.getElementById("loc-count").textContent = count;
+  document.getElementById("loc-count").style.display = count > 0 ? "" : "none";
+}
+document.getElementById("loc-trigger").onclick = () => {
+  document.getElementById("loc-multi").classList.toggle("open");
+};
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#loc-multi")) document.getElementById("loc-multi").classList.remove("open");
+});
+document.getElementById("loc-search").oninput = (e) => buildLocList(e.target.value);
+document.getElementById("loc-all").onclick = () => {
+  DATA.locations.forEach(l => selectedLocs.add(l));
+  buildLocList(document.getElementById("loc-search").value);
+  updateLocTrigger(); render();
+};
+document.getElementById("loc-none").onclick = () => {
+  selectedLocs.clear();
+  buildLocList(document.getElementById("loc-search").value);
+  updateLocTrigger(); render();
+};
+buildLocList();
+updateLocTrigger();
+
+// ---- Preceptor single-select ----
+const precSel = document.getElementById("f-prec");
+DATA.preceptors.forEach(p => precSel.insertAdjacentHTML("beforeend", `<option value="${p}">${p}</option>`));
+
+// ---- Hide / Show $ toggle ----
+const mtBtn = document.getElementById("toggle-money");
+mtBtn.onclick = () => {
+  document.body.classList.toggle("hide-money");
+  mtBtn.textContent = document.body.classList.contains("hide-money") ? "Show $" : "Hide $";
+};
+
+// ---- Print ----
+document.getElementById("print").onclick = () => window.print();
+
+// ---- Filter wiring + Clear ----
+document.getElementById("q").addEventListener("input", render);
+["f-prec","f-kind","f-paid","f-eval","f-state"].forEach(id => document.getElementById(id).addEventListener("change", render));
+document.getElementById("clear").onclick = () => {
+  document.getElementById("q").value = "";
+  ["f-prec","f-kind","f-paid","f-eval","f-state"].forEach(id => document.getElementById(id).value = "");
+  selectedLocs.clear();
+  buildLocList(document.getElementById("loc-search").value);
+  updateLocTrigger();
+  sortKey = "student_name"; sortDir = 1;
+  render();
+};
+
+render();
+</script>
+</body></html>
