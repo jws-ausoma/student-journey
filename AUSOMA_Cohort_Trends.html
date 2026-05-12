@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AUSOMA · Cohort Trends</title>
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1a2333; --muted:#5b6677; --border:#e3e6ec;
+  --brand:#0b3d91; --brand-2:#1d6fb8; --accent:#f0a500;
+  --st-PreMed:#cdd9f5;     --ink-PreMed:#102a5c;
+  --st-BasicSc:#a8d8ea;    --ink-BasicSc:#073447;
+  --st-PreClin:#ffe0a3;    --ink-PreClin:#5a3a00;
+  --st-Clinicals:#b6e3c1;  --ink-Clinicals:#114a2a;
+  --st-Exited:#f5b8b8;     --ink-Exited:#5a0e0e;
+  --st-Grad:#9b8bd9;       --ink-Grad:#1c0c4d;
+  --st-Meta:#e9eaee;       --ink-Meta:#3b3f4a;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:var(--bg); color:var(--ink);
+  font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+header.topbar { background:var(--brand); color:white; padding:12px 22px; display:flex; align-items:center; gap:18px; }
+header.topbar img { height:34px; }
+header.topbar h1 { margin:0; font-size:18px; font-weight:600; letter-spacing:.2px; }
+header.topbar .meta { margin-left:auto; font-size:12px; opacity:.85; }
+
+nav.tabs { background:#0a3478; padding:0 22px; display:flex; gap:0; border-bottom:3px solid var(--accent); }
+nav.tabs a { color:#dde6f5; text-decoration:none; padding:10px 18px; font-size:13px; font-weight:600; border-bottom:3px solid transparent; margin-bottom:-3px; }
+nav.tabs a:hover { color:white; background:rgba(255,255,255,.05); }
+nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:rgba(255,255,255,.07); }
+
+.kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:6px; padding:6px 22px 4px 22px; background:#fff; }
+.kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:5px 10px; box-shadow:0 1px 2px rgba(11,61,145,.06); transition:transform .1s, box-shadow .15s, background .15s; }
+.kpi .card.clickable { cursor:pointer; user-select:none; }
+.kpi .card.clickable:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(11,61,145,.18); }
+.kpi .card.active { outline:3px solid var(--accent); outline-offset:1px; background:#fff7e6; }
+.kpi .card.active .label { color:var(--brand); }
+.kpi .card.stage-Enrolled { border-color:#7bb37b;             background:#fbfffb; }
+.kpi .card.stage-BasicSc  { border-color:var(--st-BasicSc);   background:#fbfdff; }
+.kpi .card.stage-PreClin  { border-color:#e6c87a;             background:#fffbf0; }
+.kpi .card.stage-Clinicals{ border-color:var(--st-Clinicals); background:#fbfffc; }
+.kpi .card.stage-Exited   { border-color:var(--st-Exited);    background:#fffbfb; }
+.kpi .card.stage-Grad     { border-color:var(--st-Grad);      background:#fdfbff; }
+.kpi .card .breakdown { display:flex; gap:10px; margin-top:2px; font-size:10.5px; color:var(--muted); line-height:1.2; }
+.kpi .card .breakdown b { color:var(--ink); font-weight:700; }
+.kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1.1; }
+.kpi .value { font-size:18px; font-weight:700; margin-top:1px; color:var(--ink); line-height:1.1; }
+.kpi .sub { font-size:10.5px; color:var(--muted); line-height:1.2; }
+.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:4px 22px; font-size:12px; color:var(--ink); display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+.kpi-visible .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-size:10px; font-weight:700; margin-right:8px; }
+.kpi-visible .seg { white-space:nowrap; }
+.kpi-visible .seg b { color:var(--brand); font-weight:700; }
+.kpi-visible .seg .name { color:var(--muted); margin-right:4px; font-size:11px; }
+.kpi-visible.stage-PreMed b { color:#102a5c; }
+.kpi-visible.stage-BasicSc b { color:#073447; }
+
+.filters { display:flex; gap:8px 14px; flex-wrap:wrap; padding:10px 22px; background:#fff; border-bottom:1px solid var(--border); align-items:center; position:sticky; top:0; z-index:5; }
+.filters label { font-size:12px; color:var(--muted); font-weight:600; }
+.filters select, .filters input[type=text] { font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; color:var(--ink); box-shadow:0 1px 2px rgba(11,61,145,.08); transition:border-color .15s, box-shadow .15s; }
+.filters select:hover, .filters input[type=text]:hover { border-color:var(--brand-2); }
+.filters select:focus, .filters input[type=text]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(240,165,0,.25); }
+.filters button.clear { font:12px inherit; padding:6px 12px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; }
+.filters button.clear:hover { background:var(--brand); color:white; }
+.filters .count { margin-left:auto; font-size:12px; color:var(--muted); }
+.filters .note { font-size:11px; color:var(--muted); font-style:italic; }
+.filters .group-box { display:inline-flex; gap:6px; align-items:center; padding:4px 10px 4px 8px; border:1px dashed var(--brand); border-radius:8px; background:#f6f9ff; }
+.filters .group-box .group-lbl { font-size:11px; color:var(--brand); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-right:4px; }
+.filters .group-box label { font-weight:500; }
+
+.layout { display:grid; grid-template-columns: minmax(420px, 1.1fr) 2fr; gap:14px; padding:14px 22px; }
+.layout.stacked { grid-template-columns: 1fr; }
+@media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } }
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+
+.roster { max-height: calc(100vh - 200px); overflow:auto; }
+.roster.compact { max-height: calc(100vh - 380px); min-height:340px; }  /* stacked layout: still leaves room for the detail panel below */
+.roster table { width:100%; border-collapse:collapse; }
+/* Sticky thead — locks to the top of the scroll container so column labels
+   stay visible while scrolling. Default offset is 0 (no tab strip above the
+   table). On pages that have a .roster-tabs strip above the table, push the
+   thead down so it sits underneath the tabs instead of being hidden by them. */
+.roster thead th { position:sticky; top:0; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
+.roster thead tr:nth-child(2) th { top:32px; background:#e6ebf3; border-top:1px solid var(--border); }
+.roster:has(.roster-tabs) thead th { top:36px; }
+.roster:has(.roster-tabs) thead tr:nth-child(2) th { top:68px; }
+.roster thead th.group-hdr { background:var(--brand); color:white; text-align:center; font-weight:700; cursor:default; border-bottom:1px solid white; letter-spacing:.06em; }
+.roster thead th.group-hdr:hover { background:var(--brand); }
+.roster thead th.group-hdr.prev { background:#6b7a93; }
+.roster thead th.group-hdr.curr { background:var(--brand); }
+.roster thead th.group-hdr.next { background:#3d6bb3; }
+.roster .rot-cell { font-size:11px; line-height:1.25; }
+.roster .rot-cell .lab { font-weight:600; }
+.roster .rot-cell.dim { color:var(--muted); }
+.roster .rot-cell .date { color:var(--muted); font-size:10.5px; }
+.roster .rot-cell .loc { color:var(--muted); font-size:10.5px; }
+.roster .group-divider { border-left:2px solid var(--brand); }
+/* Highlight current rotation when it ends in <=30 days */
+.roster .rot-cell.ending-soon { background:#fff4d6; }
+.roster .rot-cell.ending-soon .badge-soon { display:inline-block; background:#e08a00; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
+.roster .rot-cell.ending-very-soon { background:#ffe1dd; }
+.roster .rot-cell.ending-very-soon .badge-soon { background:#c0382c; }
+/* Stuck student: previous rotation ended >30 days ago AND no current AND no scheduled next */
+.roster .rot-cell.stuck { background:#fbe1dd; color:#7a1414; }
+.roster .rot-cell.stuck.dim { color:#7a1414; }
+.roster .rot-cell.stuck .badge-stuck { display:inline-block; background:#c0382c; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
+.roster-tabs { display:flex; gap:0; padding:8px 12px 0 12px; background:#f0f3f8; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:3; }
+.roster-tabs button { background:transparent; border:1px solid transparent; border-bottom:none; padding:7px 16px; font:600 12px/1 system-ui, sans-serif; color:var(--muted); cursor:pointer; border-radius:6px 6px 0 0; letter-spacing:.04em; text-transform:uppercase; }
+.roster-tabs button:hover { color:var(--ink); }
+.roster-tabs button.active { background:white; color:var(--brand); border-color:var(--border); border-bottom-color:white; margin-bottom:-1px; box-shadow:0 -1px 0 var(--brand) inset; }
+.roster-tabs .spacer { flex:1; }
+.roster-tabs .hint { font:500 11px/1.6 system-ui, sans-serif; color:var(--muted); padding:7px 6px; }
+.roster thead th .sortarr { color:var(--muted); margin-left:4px; font-size:10px; }
+.roster thead th.sorted .sortarr { color:var(--accent); }
+.roster tbody tr { cursor:pointer; border-bottom:1px solid #eef0f4; }
+.roster tbody tr:hover { background:#f7f9fd; }
+.roster tbody tr.selected { background:#dbe7f9; box-shadow: inset 4px 0 0 var(--brand), inset -1px 0 0 var(--brand); }
+.roster tbody tr.selected:hover { background:#cfdef5; }
+.roster tbody tr.selected td .name { color:var(--brand); }
+.roster td { padding:8px 10px; vertical-align:top; }
+.roster .name { font-weight:600; }
+.roster .meta { color:var(--muted); font-size:11px; }
+.roster .mini-lane { display:flex; gap:1px; margin-top:4px; }
+.roster .mini-lane .cell { width:6px; height:14px; border-radius:1px; background:#eef0f4; }
+
+.status-pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; white-space:nowrap; }
+.status-Enrolled { background:#dcecdc; color:#0f5128; }
+.status-Grad { background:#e7e0fb; color:#36148a; }
+.status-W-Dism, .status-WDism { background:#f7d8d8; color:#7a1414; }
+.status-empty { background:#eee; color:#666; }
+.type-pill { font-size:11px; padding:2px 7px; border-radius:4px; font-weight:600; }
+.type-New { background:#e0eaff; color:#102a5c; }
+.type-XFR { background:#fde4c5; color:#5a3a00; }
+
+.detail { padding:18px 20px; max-height: calc(100vh - 280px); overflow:auto; }
+.layout.stacked .detail { max-height: none; overflow: visible; }
+.detail h2 { margin:0 0 4px 0; font-size:20px; }
+.detail .sid { color:var(--muted); font-size:12px; }
+.detail .group { margin-top:18px; border:1.5px solid var(--brand); border-radius:8px; padding:14px 16px; background:#fbfcfe; box-shadow:0 1px 3px rgba(11,61,145,.06); }
+.detail .group h3 { margin:0 0 10px 0; font-size:12px; color:var(--brand); text-transform:uppercase; letter-spacing:.07em; font-weight:700; border-bottom:2px solid var(--brand); padding-bottom:6px; }
+.detail .kvgrid { display:grid; grid-template-columns: 200px 1fr; row-gap:6px; column-gap:14px; }
+.detail .kvgrid .k { color:var(--muted); }
+.detail .group .crosslink { float:right; font-size:11px; font-weight:500; }
+.detail .group .crosslink a { color:var(--brand-2); text-decoration:none; }
+.detail .group .crosslink a:hover { text-decoration:underline; }
+
+.lastn { display:flex; gap:8px; flex-wrap:wrap; }
+.lastn .sembox { flex:1 1 220px; min-width:200px; padding:10px 12px; border-radius:8px; border:1px solid var(--border); }
+.lastn .sembox .lab { font-size:11px; color:var(--muted); margin-bottom:4px; }
+
+.timeline { display:grid; gap:3px; }
+.timeline .col { display:flex; flex-direction:column; align-items:stretch; }
+.timeline .colhdr { font-size:9px; color:var(--muted); text-align:center; padding:2px 0; border-bottom:1px solid var(--border); margin-bottom:2px; line-height:1.1; height:30px; display:flex; align-items:flex-end; justify-content:center; }
+.timeline .cell { height:54px; border-radius:4px; padding:3px 4px; display:flex; flex-direction:column; gap:2px; overflow:hidden; font-size:9.5px; }
+.timeline .cell.empty { background:#f4f5f8; }
+.timeline .cell.PreMed   { background:var(--st-PreMed);   color:var(--ink-PreMed); }
+.timeline .cell.BasicSc  { background:var(--st-BasicSc);  color:var(--ink-BasicSc); }
+.timeline .cell.PreClin  { background:var(--st-PreClin);  color:var(--ink-PreClin); }
+.timeline .cell.Clinicals{ background:var(--st-Clinicals);color:var(--ink-Clinicals); }
+.timeline .cell.Exited   { background:var(--st-Exited);   color:var(--ink-Exited); }
+.timeline .cell.Grad     { background:var(--st-Grad);     color:white; }
+.timeline .cell.Meta     { background:var(--st-Meta);     color:var(--ink-Meta); }
+.timeline .cell .chip { background:rgba(255,255,255,.55); padding:1px 4px; border-radius:3px; }
+
+.legend-row { display:flex; gap:10px; flex-wrap:wrap; padding:8px 22px; background:#fbfcfe; border-top:1px solid var(--border); font-size:11px; }
+.legend-row .swatch { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:middle; margin-right:4px; }
+
+.note { white-space:pre-wrap; padding:10px; background:#fff8e6; border:1px solid #f0d896; border-radius:6px; font-size:13px; }
+.empty-detail { color:var(--muted); padding:40px; text-align:center; }
+
+.cbse-band { display:inline-block; padding:2px 7px; border-radius:4px; font-weight:600; font-size:12px; }
+.cbse-band.pass { background:#cfeacf; color:#0f5128; }
+.cbse-band.near { background:#fff0c2; color:#7a5a00; }
+.cbse-band.warn { background:#ffd3a8; color:#7a3500; }
+.cbse-band.fail { background:#f7c1c1; color:#7a1414; }
+
+.step-pill { display:inline-block; padding:2px 8px; border-radius:99px; font-weight:600; font-size:11px; }
+.step-passed { background:#dcecdc; color:#0f5128; }
+.step-fail { background:#f7d8d8; color:#7a1414; }
+.step-none { background:#eee; color:#666; }
+
+.history-list { font-size:13px; }
+.history-list .ev { padding:4px 8px; margin:2px 0; border-radius:4px; display:flex; justify-content:space-between; align-items:center; }
+.history-list .ev.pass { background:#dcecdc; color:#0f5128; }
+.history-list .ev.fail { background:#f7d8d8; color:#7a1414; }
+.history-list .ev .tag { font-weight:600; }
+
+@media print {
+  .topbar .meta, .filters, .roster, nav.tabs { display:none; }
+  .layout { grid-template-columns: 1fr; padding:0; }
+  .panel { border:none; }
+  .detail { max-height:none; }
+}
+
+/* Legend / Tags help modal */
+.legend-btn { font:12px inherit; padding:5px 10px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:700; }
+.legend-btn:hover { background:var(--brand); color:white; }
+.legend-modal-bg { position:fixed; inset:0; background:rgba(11,35,51,.42); display:none; align-items:flex-start; justify-content:center; z-index:200; padding:40px 20px; overflow-y:auto; }
+.legend-modal-bg.open { display:flex; }
+.legend-modal { background:white; border-radius:12px; max-width:920px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(11,35,51,.3); }
+.legend-modal header { padding:16px 22px; border-bottom:2px solid var(--brand); display:flex; align-items:center; gap:14px; position:sticky; top:0; background:white; z-index:1; }
+.legend-modal header h2 { margin:0; color:var(--brand); font-size:18px; flex:1; }
+.legend-modal header .close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--muted); padding:4px 10px; border-radius:6px; }
+.legend-modal header .close:hover { background:#f0f3f8; color:var(--ink); }
+.legend-modal .body { padding:14px 22px 22px 22px; }
+.legend-modal .intro { color:var(--muted); font-size:13px; margin-bottom:14px; }
+.legend-stage { margin-top:14px; }
+.legend-stage h3 { margin:0 0 8px 0; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:6px 10px; border-radius:6px; }
+.legend-stage.PreMed h3   { background:var(--st-PreMed);    color:var(--ink-PreMed); }
+.legend-stage.BasicSc h3  { background:var(--st-BasicSc);   color:var(--ink-BasicSc); }
+.legend-stage.PreClin h3  { background:var(--st-PreClin);   color:var(--ink-PreClin); }
+.legend-stage.Clinicals h3{ background:var(--st-Clinicals); color:var(--ink-Clinicals); }
+.legend-stage.Exited h3   { background:var(--st-Exited);    color:var(--ink-Exited); }
+.legend-stage.Grad h3     { background:var(--st-Grad);      color:white; }
+.legend-stage.Meta h3     { background:var(--st-Meta);      color:var(--ink-Meta); }
+.legend-stage table { width:100%; border-collapse:collapse; }
+.legend-stage td { padding:5px 8px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:top; }
+.legend-stage td.tag { width:120px; }
+.legend-stage td.tag .pill { display:inline-block; font-weight:700; padding:2px 8px; border-radius:4px; font-size:12px; border:1px solid; }
+.legend-stage.PreMed   td.tag .pill { background:var(--st-PreMed);    color:var(--ink-PreMed);    border-color:#9ab1ea; }
+.legend-stage.BasicSc  td.tag .pill { background:var(--st-BasicSc);   color:var(--ink-BasicSc);   border-color:#7bbed4; }
+.legend-stage.PreClin  td.tag .pill { background:var(--st-PreClin);   color:var(--ink-PreClin);   border-color:#e6c87a; }
+.legend-stage.Clinicals td.tag .pill{ background:var(--st-Clinicals); color:var(--ink-Clinicals); border-color:#7bb37b; }
+.legend-stage.Exited   td.tag .pill { background:var(--st-Exited);    color:var(--ink-Exited);    border-color:#d68888; }
+.legend-stage.Grad     td.tag .pill { background:var(--st-Grad);      color:white;                border-color:#7765c2; }
+.legend-stage.Meta     td.tag .pill { background:var(--st-Meta);      color:var(--ink-Meta);      border-color:#c5c8d2; }
+</style>
+</head><body>
+<header class="topbar">
+  
+  <h1>AUSOMA Student Journey</h1>
+  <div class="meta">Last Updated 2026-05-12 09:18 AST · Term Summer 2026</div>
+</header>
+<nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html" class="active">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
+
+<div class="legend-modal-bg" id="legend-modal-bg" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="legend-modal">
+    <header>
+      <h2>Tag Legend</h2>
+      <button class="close" onclick="document.getElementById('legend-modal-bg').classList.remove('open')" aria-label="Close">×</button>
+    </header>
+    <div class="body">
+      <div class="intro">Tags are short codes used in the StudentJourney semester cells to mark milestones, leaves, rotations, and exits. The dashboard groups tags into stages (PreMed → Basic Sciences → Pre-Clinical → Clinicals → Exited / Graduated) which drive the color coding throughout. Click outside this dialog or the × to close.</div>
+      <div class="legend-stage PreMed"><h3>PreMed</h3><table>
+<tr><td class="tag"><span class="pill">PM1</span></td><td>PreMed Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">PM2</span></td><td>PreMed Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">PM3</span></td><td>PreMed Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">PM4</span></td><td>PreMed Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">StartPM</span></td><td>Started PreMed (cohort entry)</td></tr>
+</table></div>
+<div class="legend-stage BasicSc"><h3>Basic Sciences (MD1–MD5)</h3><table>
+<tr><td class="tag"><span class="pill">StartMD</span></td><td>Semester student started with the institution</td></tr>
+<tr><td class="tag"><span class="pill">MD1</span></td><td>Basic Sciences Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">MD2</span></td><td>Basic Sciences Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">MD3</span></td><td>Basic Sciences Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">MD4</span></td><td>Basic Sciences Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">MD5</span></td><td>Basic Sciences Semester 5 (final pre-clinical)</td></tr>
+<tr><td class="tag"><span class="pill">MD</span></td><td>Generic MD-phase shorthand</td></tr>
+<tr><td class="tag"><span class="pill">New</span></td><td>New Student</td></tr>
+<tr><td class="tag"><span class="pill">XFR</span></td><td>Transfer Student</td></tr>
+<tr><td class="tag"><span class="pill">Deferred</span></td><td>Deferred admission</td></tr>
+</table></div>
+<div class="legend-stage PreClin"><h3>Pre-Clinical (post-MD5 / pre-clinical placement)</h3><table>
+<tr><td class="tag"><span class="pill">LOA</span></td><td>Leave of Absence — billable</td></tr>
+<tr><td class="tag"><span class="pill">LOA-F</span></td><td>First Leave of Absence — non-billable (now relabeled as ST)</td></tr>
+<tr><td class="tag"><span class="pill">LOA-M</span></td><td>Medical Leave of Absence</td></tr>
+<tr><td class="tag"><span class="pill">ASF</span></td><td>Academic Standing Fee — student paying to keep enrollment active</td></tr>
+<tr><td class="tag"><span class="pill">IST</span></td><td>Independent Study Time — first 4 months after first MD5, non-billable</td></tr>
+<tr><td class="tag"><span class="pill">ST</span></td><td>Study Time (formerly LOA-F)</td></tr>
+<tr><td class="tag"><span class="pill">S1P</span></td><td>USMLE Step 1 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S1P2</span></td><td>USMLE Step 1 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F</span></td><td>USMLE Step 1 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S1F2</span></td><td>USMLE Step 1 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F3</span></td><td>USMLE Step 1 Failed (3rd attempt)</td></tr>
+</table></div>
+<div class="legend-stage Clinicals"><h3>Clinicals (cores, electives, Step 2, Match)</h3><table>
+<tr><td class="tag"><span class="pill">CC</span></td><td>Clinical Core (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CC1</span></td><td>Clinical Core block 1</td></tr>
+<tr><td class="tag"><span class="pill">CC2</span></td><td>Clinical Core block 2</td></tr>
+<tr><td class="tag"><span class="pill">CC3</span></td><td>Clinical Core block 3</td></tr>
+<tr><td class="tag"><span class="pill">CC4</span></td><td>Clinical Core block 4</td></tr>
+<tr><td class="tag"><span class="pill">CC5</span></td><td>Clinical Core block 5</td></tr>
+<tr><td class="tag"><span class="pill">CC6</span></td><td>Clinical Core block 6</td></tr>
+<tr><td class="tag"><span class="pill">CC7</span></td><td>Clinical Core block 7</td></tr>
+<tr><td class="tag"><span class="pill">CC8</span></td><td>Clinical Core block 8</td></tr>
+<tr><td class="tag"><span class="pill">CC9</span></td><td>Clinical Core block 9</td></tr>
+<tr><td class="tag"><span class="pill">CC10</span></td><td>Clinical Core block 10</td></tr>
+<tr><td class="tag"><span class="pill">CC11</span></td><td>Clinical Core block 11</td></tr>
+<tr><td class="tag"><span class="pill">CC12</span></td><td>Clinical Core block 12</td></tr>
+<tr><td class="tag"><span class="pill">CIM</span></td><td>Internal Medicine Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CSU</span></td><td>Surgery Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CFM</span></td><td>Family Medicine Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">COB</span></td><td>OBGYN Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPE</span></td><td>Pediatrics Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPS</span></td><td>Psychiatry Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE</span></td><td>Clinical Elective (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CE4</span></td><td>Clinical Elective (4 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE6</span></td><td>Clinical Elective (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE8</span></td><td>Clinical Elective (8 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE10</span></td><td>Clinical Elective (10 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">S2P</span></td><td>USMLE Step 2 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S2P2</span></td><td>USMLE Step 2 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2P3</span></td><td>USMLE Step 2 Passed (3rd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F</span></td><td>USMLE Step 2 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S2F1</span></td><td>USMLE Step 2 Failed (1st attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F2</span></td><td>USMLE Step 2 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">ApplMatch</span></td><td>Applied for Match</td></tr>
+<tr><td class="tag"><span class="pill">Matched</span></td><td>Matched into residency</td></tr>
+<tr><td class="tag"><span class="pill">NotMatched</span></td><td>Applied but did not Match in applied year</td></tr>
+</table></div>
+<div class="legend-stage Exited"><h3>Exited</h3><table>
+<tr><td class="tag"><span class="pill">W-Dism</span></td><td>Withdrawn / Dismissed (generic)</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-T</span></td><td>Withdrawn — Transferred Out</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-P</span></td><td>Withdrawn — Personal Reasons</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-F</span></td><td>Withdrawn — Financial</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-A</span></td><td>Dismissed Academically</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-H</span></td><td>Withdrawn — Health</td></tr>
+</table></div>
+<div class="legend-stage Grad"><h3>Graduated</h3><table>
+<tr><td class="tag"><span class="pill">Grad</span></td><td>Semester student graduated</td></tr>
+</table></div>
+<div class="legend-stage Meta"><h3>Milestone tags (overlays)</h3><table>
+<tr><td class="tag"><span class="pill">TargetGrd</span></td><td>Anticipated graduation semester</td></tr>
+<tr><td class="tag"><span class="pill">FW</span></td><td>Fee Waiver</td></tr>
+<tr><td class="tag"><span class="pill">ReAdmit</span></td><td>Readmitted after withdrawal</td></tr>
+</table></div>
+    </div>
+  </div>
+</div>
+
+
+<section class="trends-intro">
+  <h2 style="margin:0;color:var(--brand);font-size:18px;">Cohort Trends</h2>
+</section>
+
+<section class="trends-panel">
+  <div class="panel-hdr">
+    <h3>Pipeline Snapshot by Academic Year</h3>
+  </div>
+  <div class="chart-wrap"><canvas id="pipelineChart" height="240"></canvas></div>
+  <div class="legend-inline" id="pipeline-legend"></div>
+  <div class="pipeline-controls">
+    <label>
+      Mode:
+      <select id="pipeline-mode">
+        <option value="snapshot">End-of-AY Snapshot</option>
+        <option value="throughput">Throughput</option>
+        <option value="milestone" selected>Roster Milestone</option>
+      </select>
+      <span class="info-tip" tabindex="0" aria-label="Mode help"
+            data-tip="Roster Milestone: matches the Roster page's KPI bands — status-aware, carries forward across years. End-of-AY Snapshot: where each student was at the end of the AY (demotes students who moved off Clinicals to wait for Step 2). Throughput: every stage students passed through during the AY.">ⓘ</span>
+    </label>
+    <span class="stage-filters" id="stage-filters">
+      <span class="lbl">Stages:</span>
+      <!-- checkboxes injected from PIPELINE_GROUPS -->
+    </span>
+  </div>
+  <details class="raw-table" open>
+    <summary>Show raw counts table</summary>
+    <div class="cohort-filters" style="padding:6px 0 4px 0">
+      <label>Granularity:
+        <select id="pipeline-grain">
+          <option value="year" selected>Academic Year</option>
+          <option value="semester">Semester</option>
+        </select>
+      </label>
+      <span class="meta" id="pipeline-table-note"></span>
+    </div>
+    <div id="pipeline-table"></div>
+  </details>
+</section>
+
+<section class="trends-panel">
+  <div class="panel-hdr">
+    <h3>Cohort Outcomes</h3>
+    <div class="meta">End-state breakdown for each matriculation cohort. Same data as the funnel table below, visualised as a stacked bar.</div>
+  </div>
+  <div class="chart-wrap" style="height:auto"><canvas id="outcomesChart" height="320"></canvas></div>
+</section>
+
+<section class="trends-panel">
+  <div class="panel-hdr">
+    <h3>ACCM Cohort Funnel</h3>
+    <div class="meta">One row per matriculation cohort. Click <b>+</b> to expand the student list behind each row.</div>
+  </div>
+  <div class="cohort-filters">
+    <label>From: <select id="cohort-from"></select></label>
+    <label>To: <select id="cohort-to"></select></label>
+    <button class="clear" id="cohort-reset">Reset</button>
+    <span class="meta" id="cohort-count"></span>
+  </div>
+  <div class="table-scroll"><table id="cohort-table" class="cohort-table"></table></div>
+</section>
+
+<section class="trends-panel">
+  <div class="panel-hdr">
+    <h3>USMLE First-Attempt Pass Rates by Cohort</h3>
+    <div class="meta">Of students who actually sat Step 1 / Step 2, what fraction passed on first attempt.</div>
+  </div>
+  <div class="chart-wrap"><canvas id="passrateChart" height="220"></canvas></div>
+</section>
+
+<style>
+.trends-intro { padding:12px 22px 4px 22px; }
+.trends-panel { padding:8px 22px 16px 22px; background:#fff; border-bottom:1px solid var(--border); }
+.trends-panel .panel-hdr { display:flex; align-items:baseline; gap:14px; margin-bottom:6px; }
+.trends-panel .panel-hdr h3 { margin:0; color:var(--brand); font-size:14px; text-transform:uppercase; letter-spacing:.04em; }
+.chart-wrap { position:relative; height:280px; max-width:1500px; }
+.legend-inline { display:flex; flex-wrap:wrap; gap:14px; padding:4px 0 0 0; font-size:11px; color:var(--ink); }
+.legend-inline .sw { display:inline-block; width:14px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+.raw-table { margin-top:8px; }
+.raw-table summary { cursor:pointer; font-size:12px; color:var(--brand); }
+.raw-table table { width:100%; border-collapse:collapse; font-size:11px; margin-top:6px; }
+.raw-table th, .raw-table td { padding:4px 8px; border:1px solid #eef0f4; text-align:right; }
+.raw-table th:first-child, .raw-table td:first-child { text-align:left; }
+.raw-table thead { background:#f0f3f8; }
+.raw-table table.pipeline-grid th.expandable { cursor:pointer; user-select:none; }
+.raw-table table.pipeline-grid th.expandable:hover { background:#dde6f5; color:var(--brand); }
+.raw-table table.pipeline-grid th.sub, .raw-table table.pipeline-grid td.sub { background:#fbfcfe; font-size:10.5px; color:var(--muted); }
+.raw-table table.pipeline-grid th.subtotal, .raw-table table.pipeline-grid td.subtotal { background:#f0f3f8; }
+.pipeline-controls { display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:6px 0 10px 0; font-size:12px; }
+.pipeline-controls > label { display:flex; align-items:center; gap:6px; }
+.pipeline-controls select { font:12px inherit; padding:4px 8px; border:1.5px solid var(--brand); border-radius:6px; background:white; }
+.pipeline-controls .stage-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.pipeline-controls .stage-filters .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-right:4px; }
+.pipeline-controls .stage-filters label { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:99px; border:1.5px solid var(--border); cursor:pointer; user-select:none; font-size:11.5px; transition:background .12s; }
+.pipeline-controls .stage-filters label:hover { background:#f3f6fb; }
+.pipeline-controls .stage-filters label.active { border-color:currentColor; }
+.pipeline-controls .stage-filters input { margin:0; cursor:pointer; }
+.pipeline-controls .stage-filters .sw { display:inline-block; width:10px; height:10px; border-radius:2px; }
+/* Info "ⓘ" tooltip used on the Mode label (and reusable elsewhere). */
+.info-tip { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:#0a3478; color:#fff; font-size:11px; font-weight:700; cursor:help; position:relative; margin:0 4px 0 2px; user-select:none; }
+.info-tip:hover, .info-tip:focus { background:var(--accent); outline:none; }
+.info-tip:hover::after, .info-tip:focus::after {
+  content: attr(data-tip);
+  position:absolute; left:50%; transform:translate(-50%, 6px); top:100%;
+  background:#1a1a1a; color:#fff; padding:8px 10px; border-radius:6px; font-size:11.5px; font-weight:500;
+  width:max-content; max-width:320px; line-height:1.4; white-space:normal; text-align:left;
+  box-shadow:0 4px 14px rgba(0,0,0,.18); z-index:10; pointer-events:none;
+}
+.info-tip:hover::before, .info-tip:focus::before {
+  content: ""; position:absolute; left:50%; transform:translateX(-50%); top:100%;
+  margin-top:0; border:5px solid transparent; border-bottom-color:#1a1a1a; z-index:11; pointer-events:none;
+}
+.cohort-filters { display:flex; gap:10px; align-items:center; margin-bottom:8px; padding:6px 0; font-size:12px; }
+.cohort-filters select { font:12px inherit; padding:4px 8px; border:1.5px solid var(--brand); border-radius:6px; background:white; }
+.cohort-filters button.clear { font:12px inherit; padding:4px 12px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; }
+.cohort-filters .meta { margin-left:auto; }
+.table-scroll { overflow-x:auto; }
+.cohort-table { width:100%; border-collapse:collapse; font-size:11px; }
+.cohort-table thead th { position:sticky; top:0; background:#0a3478; color:white; padding:6px 8px; font-size:10px; text-transform:uppercase; letter-spacing:.04em; font-weight:700; border-right:1px solid rgba(255,255,255,.15); text-align:right; vertical-align:bottom; }
+.cohort-table thead th:first-child { text-align:left; }
+.cohort-table thead th.group { background:#0e3f8e; }
+.cohort-table tbody td { padding:5px 8px; border-bottom:1px solid #eef0f4; text-align:right; vertical-align:top; }
+.cohort-table tbody td:first-child { text-align:left; font-weight:600; }
+.cohort-table tbody tr:hover { background:#f7f9fd; }
+.cohort-table tbody tr.totals { background:#fbfcfe; font-weight:700; border-top:2px solid var(--brand); }
+.cohort-table .pct { color:var(--muted); font-size:10px; display:block; }
+.cohort-table .expand-btn { cursor:pointer; user-select:none; color:var(--brand); font-weight:700; margin-right:4px; }
+.cohort-table tr.expand-row td { background:#f7f9fd; padding:8px 14px; text-align:left; font-weight:400; }
+.cohort-table tr.expand-row .members { display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:4px 12px; }
+.cohort-table tr.expand-row .members a { color:var(--brand); text-decoration:none; font-size:11px; }
+.cohort-table tr.expand-row .members a:hover { text-decoration:underline; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<script>
+const DATA = {"trends":{"pipeline":{"labels":["Fall 2018","Spring 2019","Summer 2019","Fall 2019","Spring 2020","Summer 2020","Fall 2020","Spring 2021","Summer 2021","Fall 2021","Spring 2022","Summer 2022","Fall 2022","Spring 2023","Summer 2023","Fall 2023","Spring 2024","Summer 2024","Fall 2024","Spring 2025","Summer 2025","Fall 2025","Spring 2026","Summer 2026"],"keys":[201809,201901,201905,201909,202001,202005,202009,202101,202105,202109,202201,202205,202209,202301,202305,202309,202401,202405,202409,202501,202505,202509,202601,202605],"bands":{"PreMed":[0,1,1,0,3,1,4,5,3,3,2,1,1,1,1,3,4,5,11,7,12,12,6,6],"BasicSc":[3,4,11,15,21,30,42,47,44,42,29,32,23,18,15,24,25,26,27,23,26,26,30,21],"PreClin":[0,0,0,5,8,13,15,19,27,35,50,47,55,47,37,36,48,43,50,50,43,43,39,37],"Clinicals":[0,0,0,0,1,1,2,2,2,4,4,13,7,16,25,20,13,14,14,15,13,15,15,11],"Exited":[0,0,0,1,0,0,2,4,3,0,2,6,9,9,9,7,1,4,1,9,7,6,8,5],"Grad":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,3,0,3,0]},"substages":{"IST":[0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,1,0,3,5],"ASF":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,2,1,2,5,5,6,34,31],"LOA":[0,0,0,4,8,13,15,19,27,35,50,47,55,46,35,34,45,42,48,45,38,38,2,1]},"ay_labels":["2018-19","2019-20","2020-21","2021-22","2022-23","2023-24","2024-25","2025-26"],"ay_bands":{"PreMed":[1,3,5,4,2,6,16,13],"BasicSc":[11,40,63,59,32,38,43,42],"PreClin":[0,13,32,64,74,61,68,58],"Clinicals":[0,1,2,14,29,32,19,18],"Exited":[0,1,9,8,27,12,17,18],"Grad":[0,0,0,0,0,5,3,3]},"ay_substages":{"IST":[0,0,0,0,2,1,1,8],"ASF":[0,0,0,0,1,2,5,40],"LOA":[0,13,32,64,72,58,63,38]},"ay_snap_bands":{"PreMed":[1,1,3,1,1,5,12,6],"BasicSc":[11,31,44,32,15,26,26,23],"PreClin":[0,13,27,47,37,43,43,39],"Clinicals":[0,1,2,14,25,14,13,12],"Exited":[0,1,9,8,27,12,17,18],"Grad":[0,0,0,0,0,5,3,3]},"ay_snap_substages":{"IST":[0,0,0,0,1,0,1,5],"ASF":[0,0,0,0,1,1,5,32],"LOA":[0,13,27,47,35,42,38,2]},"ay_milestone_bands":{"PreMed":[1,1,3,1,1,5,12,6],"BasicSc":[11,31,45,32,15,26,26,23],"PreClin":[0,13,27,47,37,43,43,41],"Clinicals":[0,1,2,14,26,14,14,15],"Exited":[84,58,37,33,57,61,75,90],"Grad":[8,5,4,2,0,5,8,11]},"ay_milestone_substages":{"IST":[0,0,0,0,1,0,1,5],"ASF":[0,0,0,0,1,1,5,34],"LOA":[0,13,27,47,35,42,38,2]},"current_ay":"2025-26"},"cohorts":[{"cohort":"Fall 2018","matriculating":3,"transfers":0,"basicsc_complete":3,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":1,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":3,"step1_takers":3,"step1_pass_first":2,"clinicals_started":3,"clinicals_done":2,"step2_takers":1,"step2_pass_first":1,"graduated":1,"residency":1,"currently_enrolled":1,"members":[{"sid":2019000018,"name":"Ismail, Arsalan"},{"sid":2019000019,"name":"Naqvi, Zahra"},{"sid":2019000020,"name":"Raza, Farah"}]},{"cohort":"Spring 2019","matriculating":1,"transfers":1,"basicsc_complete":1,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":1,"step1_delayed":0,"step1_takers":1,"step1_pass_first":1,"clinicals_started":1,"clinicals_done":1,"step2_takers":1,"step2_pass_first":1,"graduated":1,"residency":1,"currently_enrolled":0,"members":[{"sid":2019000021,"name":"Goyette, Sandy"}]},{"cohort":"Summer 2019","matriculating":7,"transfers":2,"basicsc_complete":6,"basicsc_failed":1,"dism_academic":1,"dism_financial":2,"dism_transfer":1,"dism_personal":1,"dism_health":0,"step1_immediate":1,"step1_delayed":2,"step1_takers":3,"step1_pass_first":1,"clinicals_started":3,"clinicals_done":1,"step2_takers":1,"step2_pass_first":1,"graduated":1,"residency":1,"currently_enrolled":1,"members":[{"sid":2019000032,"name":"Akhtar, Zaiba"},{"sid":2019000033,"name":"Avirneni, Rajeev"},{"sid":2019000026,"name":"Badr, Khaled"},{"sid":2019000036,"name":"Dhillon, Pamella"},{"sid":2019000024,"name":"Jawara, Amadou"},{"sid":2019000014,"name":"Khan, Sarah"},{"sid":2019000022,"name":"Maul, Nicole"}]},{"cohort":"Fall 2019","matriculating":10,"transfers":5,"basicsc_complete":9,"basicsc_failed":1,"dism_academic":4,"dism_financial":0,"dism_transfer":0,"dism_personal":2,"dism_health":0,"step1_immediate":1,"step1_delayed":2,"step1_takers":3,"step1_pass_first":2,"clinicals_started":5,"clinicals_done":1,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":1,"currently_enrolled":5,"members":[{"sid":2019000054,"name":"Al Shalabi, Nadin"},{"sid":2019000048,"name":"Al-Janabi, Atheer"},{"sid":2019000045,"name":"Blount, Anthony"},{"sid":2019000059,"name":"Consera, Ephraim"},{"sid":2019000049,"name":"Endrawos, Delidah"},{"sid":2019000050,"name":"Fauzi, Vonni"},{"sid":2019000040,"name":"Ghairat, Setara"},{"sid":2019000053,"name":"Hasan, Zuhair"},{"sid":2019000051,"name":"Pede, Priscilla"},{"sid":2019000015,"name":"Shaikh, Mashad"}]},{"cohort":"Spring 2020","matriculating":10,"transfers":3,"basicsc_complete":9,"basicsc_failed":0,"dism_academic":1,"dism_financial":2,"dism_transfer":3,"dism_personal":2,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":1,"step1_pass_first":1,"clinicals_started":3,"clinicals_done":2,"step2_takers":0,"step2_pass_first":0,"graduated":2,"residency":1,"currently_enrolled":0,"members":[{"sid":2019000068,"name":"Badwal, Anjali"},{"sid":2019000075,"name":"Carper, Lacey"},{"sid":2020000005,"name":"Carver, Frank"},{"sid":2020000006,"name":"Chanthachackvong, Justine"},{"sid":2019000066,"name":"Hussien, Abdishakur"},{"sid":2019000074,"name":"Rajkumar, Randy"},{"sid":2019000072,"name":"Ramdat, Jason"},{"sid":2019000062,"name":"Rifai, Hashem"},{"sid":2019000046,"name":"Sharma, Ankur"},{"sid":2019000067,"name":"Singh, Harjyot"}]},{"cohort":"Summer 2020","matriculating":15,"transfers":5,"basicsc_complete":11,"basicsc_failed":4,"dism_academic":4,"dism_financial":3,"dism_transfer":2,"dism_personal":5,"dism_health":0,"step1_immediate":0,"step1_delayed":1,"step1_takers":1,"step1_pass_first":1,"clinicals_started":4,"clinicals_done":1,"step2_takers":0,"step2_pass_first":0,"graduated":1,"residency":1,"currently_enrolled":1,"members":[{"sid":2019000057,"name":"Basta, Sara"},{"sid":2020000017,"name":"Bawa, Raj"},{"sid":2020000019,"name":"Chakalisa, Jobic"},{"sid":2019000029,"name":"Hadarah, Abdul"},{"sid":2020000012,"name":"Hasan, Umair"},{"sid":2020000002,"name":"Jones, Christina"},{"sid":2020000018,"name":"Mangru, Reg"},{"sid":2019000039,"name":"Nkansah, Nana"},{"sid":2020000009,"name":"Razzak, Henaa"},{"sid":2019000034,"name":"Reaves, Briana"},{"sid":2019000009,"name":"Romley, George"},{"sid":2020000010,"name":"Sena, Juciane"},{"sid":2020000013,"name":"Shah, Basima"},{"sid":2020000004,"name":"Tromp, Olbrine"},{"sid":2020000015,"name":"Willis, Frank"}]},{"cohort":"Fall 2020","matriculating":18,"transfers":4,"basicsc_complete":18,"basicsc_failed":0,"dism_academic":3,"dism_financial":4,"dism_transfer":3,"dism_personal":3,"dism_health":0,"step1_immediate":0,"step1_delayed":2,"step1_takers":2,"step1_pass_first":1,"clinicals_started":10,"clinicals_done":1,"step2_takers":0,"step2_pass_first":0,"graduated":1,"residency":1,"currently_enrolled":6,"members":[{"sid":2020000025,"name":"Abrigo, Tarah-Anne"},{"sid":2020000039,"name":"Alam, Umna"},{"sid":2020000020,"name":"Anil, Ananya"},{"sid":2020000045,"name":"Anyabena, Andre"},{"sid":2020000042,"name":"Awad, Elias"},{"sid":2019000070,"name":"Becerra, Jennifer"},{"sid":2020000044,"name":"Cadet, Ralph"},{"sid":2020000037,"name":"Castellvi, Katherine"},{"sid":2020000033,"name":"Hampton, Jazmin"},{"sid":2020000036,"name":"Islam, Rifat"},{"sid":2020000001,"name":"Jean, Zariah"},{"sid":2020000043,"name":"Khan, Sophia"},{"sid":2020000034,"name":"Kreidstein, Rebecca"},{"sid":2020000032,"name":"Merchant, Sarah"},{"sid":2020000028,"name":"Mwagale Kibuuka, Maria"},{"sid":2020000029,"name":"Nguyen, Justin"},{"sid":2020000038,"name":"Pinnala, Vineetha"},{"sid":2020000031,"name":"Soomro, Fatima"}]},{"cohort":"Spring 2021","matriculating":12,"transfers":3,"basicsc_complete":10,"basicsc_failed":2,"dism_academic":2,"dism_financial":1,"dism_transfer":1,"dism_personal":6,"dism_health":0,"step1_immediate":1,"step1_delayed":0,"step1_takers":1,"step1_pass_first":1,"clinicals_started":3,"clinicals_done":1,"step2_takers":1,"step2_pass_first":1,"graduated":0,"residency":1,"currently_enrolled":2,"members":[{"sid":2020000058,"name":"Amini, Dornaz"},{"sid":2020000053,"name":"Balaraj, Mahima"},{"sid":2021000002,"name":"Bhavanam, Naga"},{"sid":2020000054,"name":"Headrick, Melissa"},{"sid":2020000051,"name":"Ingersoll, DeShaun"},{"sid":2020000056,"name":"Jensen, Sarah"},{"sid":2020000057,"name":"McNeill, Jasmine"},{"sid":2020000048,"name":"Olowomeye , Olayemi \"Eunice\""},{"sid":2021000004,"name":"Olubode, Fatai"},{"sid":2020000060,"name":"Saint Cloud, Ernst"},{"sid":2021000003,"name":"Surty, Amal"},{"sid":2020000055,"name":"Tabasoom, Saba"}]},{"cohort":"Summer 2021","matriculating":7,"transfers":3,"basicsc_complete":7,"basicsc_failed":0,"dism_academic":2,"dism_financial":1,"dism_transfer":0,"dism_personal":1,"dism_health":0,"step1_immediate":1,"step1_delayed":0,"step1_takers":1,"step1_pass_first":1,"clinicals_started":4,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":4,"members":[{"sid":2021000010,"name":"Bhat, Malpe Surekha"},{"sid":2021000006,"name":"Donkor, Emmanuel"},{"sid":2021000008,"name":"Farr, Azad"},{"sid":2020000050,"name":"Krupa - Woodard, Marcelina"},{"sid":2021000012,"name":"Matese, Morgan"},{"sid":2021000009,"name":"Mboboshi, Milenge"},{"sid":2021000011,"name":"Merriman, Sarah"}]},{"cohort":"Fall 2021","matriculating":11,"transfers":3,"basicsc_complete":8,"basicsc_failed":1,"dism_academic":3,"dism_financial":2,"dism_transfer":0,"dism_personal":1,"dism_health":0,"step1_immediate":0,"step1_delayed":1,"step1_takers":3,"step1_pass_first":3,"clinicals_started":5,"clinicals_done":2,"step2_takers":1,"step2_pass_first":1,"graduated":1,"residency":1,"currently_enrolled":4,"members":[{"sid":2020000027,"name":"Ali, Jasim"},{"sid":2021000019,"name":"Carrasco, Mario"},{"sid":2020000024,"name":"Chanthachackvong, Alexis"},{"sid":2020000023,"name":"Dam, Nicholas"},{"sid":2021000025,"name":"Flores, Marina"},{"sid":2021000028,"name":"Jibawi, Ghassan"},{"sid":2021000016,"name":"Lopez, Jocelyn"},{"sid":2021000018,"name":"Mckethan, Johnny"},{"sid":2021000017,"name":"Rivera, Antonio"},{"sid":2021000026,"name":"Rueda, Robert"},{"sid":2021000027,"name":"Wheeler, Juanita"}]},{"cohort":"Spring 2022","matriculating":2,"transfers":0,"basicsc_complete":2,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":2,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":2,"members":[{"sid":2021000029,"name":"Ansari, Qaasim"},{"sid":2021000031,"name":"Jewanee, Sehar"}]},{"cohort":"Summer 2022","matriculating":13,"transfers":8,"basicsc_complete":12,"basicsc_failed":1,"dism_academic":5,"dism_financial":0,"dism_transfer":1,"dism_personal":1,"dism_health":0,"step1_immediate":3,"step1_delayed":0,"step1_takers":3,"step1_pass_first":3,"clinicals_started":7,"clinicals_done":4,"step2_takers":2,"step2_pass_first":1,"graduated":1,"residency":2,"currently_enrolled":6,"members":[{"sid":2022000016,"name":"Akil, Maria"},{"sid":2022000021,"name":"Anietom, Mmesoma"},{"sid":2022000019,"name":"Cano, Courtney"},{"sid":2021000030,"name":"Carouthers, Akiko"},{"sid":2022000005,"name":"Christian, Althea"},{"sid":2022000010,"name":"Hayes, Jacob"},{"sid":2022000013,"name":"Kasinadhuni, Pranav"},{"sid":2022000012,"name":"Moeen, Ghania"},{"sid":2022000014,"name":"Patel, Himani"},{"sid":2022000009,"name":"Plaisir, Yardly"},{"sid":2022000011,"name":"Roger-Barreto, Estefania"},{"sid":2022000015,"name":"Sanchez, Gabriela"},{"sid":2022000020,"name":"Syed, Mahmood"}]},{"cohort":"Fall 2022","matriculating":5,"transfers":3,"basicsc_complete":5,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":1,"step1_immediate":1,"step1_delayed":1,"step1_takers":2,"step1_pass_first":2,"clinicals_started":5,"clinicals_done":1,"step2_takers":1,"step2_pass_first":1,"graduated":1,"residency":1,"currently_enrolled":3,"members":[{"sid":2022000030,"name":"Blumen, Jessica"},{"sid":2022000027,"name":"Diaz, Christian"},{"sid":2022000024,"name":"Larmonie, Marie-Claire"},{"sid":2022000022,"name":"Patel, Vrunda"},{"sid":2022000026,"name":"Pelaez, Luis"}]},{"cohort":"Spring 2023","matriculating":3,"transfers":0,"basicsc_complete":3,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":3,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":3,"members":[{"sid":2022000033,"name":"Khan, Abdul Moueed"},{"sid":2022000036,"name":"Mbamalu, Anna"},{"sid":2022000032,"name":"Shahzad, Talha"}]},{"cohort":"Summer 2023","matriculating":4,"transfers":2,"basicsc_complete":3,"basicsc_failed":1,"dism_academic":1,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":1,"step1_delayed":1,"step1_takers":2,"step1_pass_first":2,"clinicals_started":3,"clinicals_done":1,"step2_takers":0,"step2_pass_first":0,"graduated":1,"residency":0,"currently_enrolled":3,"members":[{"sid":2022000001,"name":"Asante, Richmond"},{"sid":2023000001,"name":"Burns, Anastasia"},{"sid":2023000005,"name":"Dhaliwal, Jaskaran"},{"sid":2022000028,"name":"Safdar, Junned"}]},{"cohort":"Fall 2023","matriculating":10,"transfers":3,"basicsc_complete":9,"basicsc_failed":1,"dism_academic":1,"dism_financial":1,"dism_transfer":1,"dism_personal":2,"dism_health":0,"step1_immediate":0,"step1_delayed":1,"step1_takers":1,"step1_pass_first":1,"clinicals_started":5,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":5,"members":[{"sid":2023000010,"name":"Bolo, Samira"},{"sid":2023000029,"name":"Brown, Ruthmae"},{"sid":2023000031,"name":"Carson, Stella"},{"sid":2023000022,"name":"Casimir, Ketpha"},{"sid":2023000025,"name":"Chauhan, Bhavesh"},{"sid":2023000026,"name":"Eziri, Uzoamaka"},{"sid":2023000008,"name":"Harris, Aureilya"},{"sid":2019000025,"name":"Karna, Samardeep"},{"sid":2023000019,"name":"Mishra, Akanksha"},{"sid":2023000027,"name":"Smith, Moneesha"}]},{"cohort":"Spring 2024","matriculating":8,"transfers":4,"basicsc_complete":6,"basicsc_failed":2,"dism_academic":1,"dism_financial":1,"dism_transfer":0,"dism_personal":1,"dism_health":0,"step1_immediate":1,"step1_delayed":1,"step1_takers":2,"step1_pass_first":2,"clinicals_started":5,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":6,"members":[{"sid":2024000001,"name":"Abdel-Maksoud, Omar"},{"sid":2023000036,"name":"Dean, Shawn"},{"sid":2023000009,"name":"Hurlston, Tracy"},{"sid":2023000040,"name":"Lee, Gae"},{"sid":2023000035,"name":"Lee, Jong"},{"sid":2023000016,"name":"Phwe, Zune"},{"sid":2024000002,"name":"Soofi, Saleeha"},{"sid":2023000003,"name":"Townsend, Margaret"}]},{"cohort":"Summer 2024","matriculating":5,"transfers":2,"basicsc_complete":3,"basicsc_failed":1,"dism_academic":0,"dism_financial":1,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":4,"clinicals_done":1,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":4,"members":[{"sid":2023000037,"name":"Ahmed, Esam"},{"sid":2023000028,"name":"Brown, Lamontez"},{"sid":2024000009,"name":"Echavarria, Nataly"},{"sid":2023000034,"name":"Mir, Nauroze"},{"sid":2024000008,"name":"Zaman, Rippon"}]},{"cohort":"Fall 2024","matriculating":7,"transfers":3,"basicsc_complete":6,"basicsc_failed":1,"dism_academic":1,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":1,"step1_delayed":0,"step1_takers":1,"step1_pass_first":1,"clinicals_started":5,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":6,"members":[{"sid":2024000025,"name":"Desir, Hendrice"},{"sid":2024000024,"name":"Eneeva, Marina"},{"sid":2024000011,"name":"Gulenga, Veronique"},{"sid":2024000020,"name":"Holka, Ashley"},{"sid":2023000020,"name":"Kushakov, Otabek"},{"sid":2024000026,"name":"Mohammad, Negina"},{"sid":2024000021,"name":"Swati, Ihtesham"}]},{"cohort":"Spring 2025","matriculating":7,"transfers":1,"basicsc_complete":5,"basicsc_failed":1,"dism_academic":1,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":6,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":6,"members":[{"sid":2024000016,"name":"Eren, Feride"},{"sid":2023000006,"name":"Johnson, Nyasia"},{"sid":2023000023,"name":"Niraimathirajan, Kowsigan"},{"sid":2025000001,"name":"Samaan, Mary"},{"sid":2025000002,"name":"Sanduby, Lilah"},{"sid":2023000017,"name":"Shahzad, Moiz"},{"sid":2024000012,"name":"Shields, Ryan"}]},{"cohort":"Summer 2025","matriculating":3,"transfers":2,"basicsc_complete":3,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":3,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":3,"members":[{"sid":2025000014,"name":"George, Julia"},{"sid":2025000011,"name":"Nnaji, Nnenna"},{"sid":2025000013,"name":"Sharaf, Syed"}]},{"cohort":"Fall 2025","matriculating":5,"transfers":2,"basicsc_complete":3,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":5,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":5,"members":[{"sid":2025000021,"name":"Aka, Philip"},{"sid":2025000015,"name":"Chang, Lawrence"},{"sid":2024000003,"name":"Khan, Ahad"},{"sid":2025000003,"name":"Pietras, Haley"},{"sid":2025000016,"name":"Seba, Rafeal"}]},{"cohort":"Spring 2026","matriculating":8,"transfers":0,"basicsc_complete":8,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":8,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":8,"members":[{"sid":2024000007,"name":"Abdulwahid, Zahraa"},{"sid":2024000017,"name":"Ahmed, Maysha"},{"sid":2024000019,"name":"Feliz Herasme, Ana"},{"sid":2023000033,"name":"Saikia, Nripangana"},{"sid":2024000014,"name":"Shah, Mahum"},{"sid":2024000010,"name":"Skrek, Benjamin"},{"sid":2025000023,"name":"Tariq, Ziyad"},{"sid":2024000022,"name":"Valsania, Rebecca"}]},{"cohort":"Fall 2026","matriculating":4,"transfers":0,"basicsc_complete":4,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":4,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":4,"members":[{"sid":2025000004,"name":"Dilipchand, Nazir"},{"sid":2025000007,"name":"Giron, Maria"},{"sid":2025000012,"name":"Moin, Syed Hamna"},{"sid":2025000009,"name":"Patel, Tapish"}]},{"cohort":"Spring 2027","matriculating":2,"transfers":0,"basicsc_complete":2,"basicsc_failed":0,"dism_academic":0,"dism_financial":0,"dism_transfer":0,"dism_personal":0,"dism_health":0,"step1_immediate":0,"step1_delayed":0,"step1_takers":0,"step1_pass_first":0,"clinicals_started":2,"clinicals_done":0,"step2_takers":0,"step2_pass_first":0,"graduated":0,"residency":0,"currently_enrolled":2,"members":[{"sid":2025000026,"name":"Agyei, Jeff"},{"sid":2025000020,"name":"Mnaather, Ayat"}]}],"stage_bands":[{"key":"PreMed","color":"#dde6f5","label":"PM"},{"key":"BasicSc","color":"#bcd7f7","label":"Basic Sciences"},{"key":"PreClin","color":"#ffe3a8","label":"Pre-Clinical (Beyond MD5)"},{"key":"Clinicals","color":"#c8e6c9","label":"Clinicals"},{"key":"Exited","color":"#f4c7c5","label":"Exited"},{"key":"Grad","color":"#d6c1f5","label":"Graduated"}]},"build_ts":"2026-05-12 09:18 AST"};
+
+// ---------- Pipeline Snapshot (stacked area, by Academic Year) ----------
+// The five top-level groups shown in the chart and table. 'Basic Sciences' is
+// the sum of PreMed (PM) + BasicSc (MD); 'Pre-Clinical (Beyond MD5)' uses the
+// PreClin band as-is. The other three pass through.
+const PIPELINE_GROUPS = [
+  { key:"basicsc",  label:"Basic Sciences",            color:"#bcd7f7",
+    members:[{key:"PreMed", label:"PM"}, {key:"BasicSc", label:"MD"}] },
+  { key:"preclin",  label:"Pre-Clinical (Beyond MD5)", color:"#ffe3a8",
+    members:[{key:"PreClin", label:"PreClin"}], subseries:["IST","ASF","LOA"] },
+  { key:"clinicals",label:"Clinicals",                 color:"#c8e6c9",
+    members:[{key:"Clinicals", label:"Clinicals"}] },
+  { key:"exited",   label:"Exited",                    color:"#f4c7c5",
+    members:[{key:"Exited", label:"Exited"}] },
+  { key:"grad",     label:"Graduated",                 color:"#d6c1f5",
+    members:[{key:"Grad", label:"Grad"}] },
+];
+
+// Expand state for the raw-counts table column groups (off by default).
+const expanded = { basicsc: false, preclin: false };
+// Stage visibility — Exited and Graduated unchecked by default per request.
+const stageVisible = { basicsc: true, preclin: true, clinicals: true, exited: false, grad: false };
+// Mode: 'milestone' (Roster milestone — matches the Roster KPI bands, default),
+// 'snapshot' (each student counted once per AY in their end-of-AY stage), or
+// 'throughput' (counted in every stage they passed through during the AY).
+let pipelineMode = "milestone";
+let pipelineChartInstance = null;
+
+function sumMembers(group, src, i) {
+  return group.members.reduce((a, m) => a + ((src[m.key] || [])[i] || 0), 0);
+}
+
+// Choose which AY data source to use for charts/tables based on Mode.
+function ayBandSrc() {
+  const p = DATA.trends.pipeline;
+  if (pipelineMode === "milestone")  return p.ay_milestone_bands;
+  if (pipelineMode === "throughput") return p.ay_bands;
+  return p.ay_snap_bands;
+}
+function aySubSrc() {
+  const p = DATA.trends.pipeline;
+  if (pipelineMode === "milestone")  return p.ay_milestone_substages;
+  if (pipelineMode === "throughput") return p.ay_substages;
+  return p.ay_snap_substages;
+}
+function modeYTitle() {
+  if (pipelineMode === "milestone")  return "Students (Roster milestone)";
+  if (pipelineMode === "throughput") return "Unique students per AY (throughput)";
+  return "Students (end-of-AY snapshot)";
+}
+
+function buildStageFilterUI() {
+  const wrap = document.getElementById("stage-filters");
+  // Keep the leading label, drop any prior chips
+  wrap.innerHTML = `<span class="lbl">Stages:</span>`;
+  PIPELINE_GROUPS.forEach(g => {
+    const id = `stage-chk-${g.key}`;
+    const checked = stageVisible[g.key] ? "checked" : "";
+    const lblCls = stageVisible[g.key] ? "active" : "";
+    const sw = `<span class="sw" style="background:${g.color};border:1px solid #00000022"></span>`;
+    wrap.insertAdjacentHTML("beforeend",
+      `<label class="${lblCls}" style="color:${g.color === '#fff' ? 'inherit' : '#0f2c5c'}" data-grp="${g.key}">
+        <input type="checkbox" id="${id}" ${checked}/>${sw}${g.label}
+      </label>`);
+    document.getElementById(id).onchange = (ev) => {
+      stageVisible[g.key] = ev.target.checked;
+      ev.target.closest("label").classList.toggle("active", ev.target.checked);
+      syncChartVisibility();
+      renderPipelineTable();
+    };
+  });
+}
+
+function syncChartVisibility() {
+  if (!pipelineChartInstance) return;
+  PIPELINE_GROUPS.forEach((g, idx) => {
+    pipelineChartInstance.setDatasetVisibility(idx, !!stageVisible[g.key]);
+  });
+  pipelineChartInstance.update();
+}
+
+function renderPipelineChart() {
+  const p = DATA.trends.pipeline;
+  const labels = p.ay_labels;
+  const bandSrc = ayBandSrc();
+  const datasets = PIPELINE_GROUPS.map(g => ({
+    label: g.label,
+    data: labels.map((_, i) => sumMembers(g, bandSrc, i)),
+    backgroundColor: g.color,
+    borderColor: g.color,
+    borderWidth: 1,
+    fill: true,
+    tension: 0.25,
+    pointRadius: 2.5,
+    hidden: !stageVisible[g.key],
+  }));
+  const ctx = document.getElementById("pipelineChart").getContext("2d");
+  if (pipelineChartInstance) pipelineChartInstance.destroy();
+  pipelineChartInstance = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { stacked: true, beginAtZero: true, title:{display:true, text: modeYTitle()}},
+        x: { title:{display:true, text:"Academic Year (Fall → Summer)"}, ticks:{font:{size:11}}}
+      },
+      plugins: {
+        legend: {
+          display: true, position: "bottom",
+          labels: { font:{size:12}, boxWidth:14, padding:14 },
+          onClick: (e, legendItem, legend) => {
+            // Sync the checkboxes when the user clicks a legend item.
+            const idx = legendItem.datasetIndex;
+            const g = PIPELINE_GROUPS[idx];
+            stageVisible[g.key] = !stageVisible[g.key];
+            const chk = document.getElementById(`stage-chk-${g.key}`);
+            if (chk) chk.checked = stageVisible[g.key];
+            const lbl = chk?.closest("label");
+            if (lbl) lbl.classList.toggle("active", stageVisible[g.key]);
+            syncChartVisibility();
+            renderPipelineTable();
+          }
+        },
+        tooltip: {
+          mode: "index", intersect: false,
+          callbacks: { footer: items => "AY total (visible): " + items.reduce((a,b)=>a+b.parsed.y, 0) }
+        }
+      },
+      interaction: { mode: "index", intersect: false }
+    }
+  });
+  document.getElementById("pipeline-legend").innerHTML =
+    '<span class="meta">Click a stage in the legend (above) or use the controls below to toggle stages. Mode and stage selections apply to both the chart and the raw counts table.</span>';
+}
+
+function renderPipelineTable() {
+  const grain = document.getElementById("pipeline-grain").value;
+  const p = DATA.trends.pipeline;
+  // Semester-granularity always uses the per-semester counts (which are
+  // inherently a per-semester snapshot — each student counts once per sem in
+  // their priority-resolved stage).
+  // Display in reverse chronological order — most recent AY (or semester) on top.
+  const sourceLabels = grain === "year" ? p.ay_labels : p.labels;
+  const order = sourceLabels.map((_, i) => i).reverse();
+  const labels = order.map(i => sourceLabels[i]);
+  const bandSrc = grain === "year" ? ayBandSrc() : p.bands;
+  const subSrc = grain === "year" ? aySubSrc() : p.substages;
+  const visibleGroups = PIPELINE_GROUPS.filter(g => stageVisible[g.key]);
+
+  let head1 = `<tr><th rowspan="2">${grain === "year" ? "Academic Year" : "Semester"}</th>`;
+  let head2 = "<tr>";
+  visibleGroups.forEach(g => {
+    const expandable = g.key === "basicsc" || g.key === "preclin";
+    const colspan = expanded[g.key] ? ((g.subseries ? g.subseries.length : g.members.length) + 1) : 1;
+    const caret = expandable ? (expanded[g.key] ? "▾" : "▸") : "";
+    const cls = expandable ? "expandable" : "";
+    head1 += `<th colspan="${colspan}" class="${cls}" ${expandable?`data-grp="${g.key}"`:""}>${caret} ${g.label}</th>`;
+    if (expanded[g.key]) {
+      head2 += `<th class="subtotal">Total</th>`;
+      if (g.subseries) {
+        g.subseries.forEach(s => head2 += `<th class="sub">${s}</th>`);
+      } else {
+        g.members.forEach(m => head2 += `<th class="sub">${m.label}</th>`);
+      }
+    }
+  });
+  head1 += `<th rowspan="2">Total</th></tr>`;
+  head2 += "</tr>";
+
+  let html = `<table class="pipeline-grid"><thead>${head1}${head2}</thead><tbody>`;
+  labels.forEach((lab, displayIdx) => {
+    // `order` maps display position -> source array index, since rows are reversed.
+    const i = order[displayIdx];
+    let row = `<td>${lab}</td>`;
+    let rowTotal = 0;
+    visibleGroups.forEach(g => {
+      const groupTot = sumMembers(g, bandSrc, i);
+      rowTotal += groupTot;
+      if (expanded[g.key]) {
+        row += `<td class="subtotal"><b>${groupTot || ''}</b></td>`;
+        if (g.subseries) {
+          g.subseries.forEach(s => row += `<td class="sub">${(subSrc[s] || [])[i] || ''}</td>`);
+        } else {
+          g.members.forEach(m => row += `<td class="sub">${(bandSrc[m.key] || [])[i] || ''}</td>`);
+        }
+      } else {
+        row += `<td>${groupTot || ''}</td>`;
+      }
+    });
+    row += `<td><b>${rowTotal}</b></td>`;
+    html += `<tr>${row}</tr>`;
+  });
+  html += `</tbody></table>`;
+  document.getElementById("pipeline-table").innerHTML = html;
+
+  document.querySelectorAll("#pipeline-table th.expandable").forEach(th => {
+    th.onclick = () => {
+      const key = th.dataset.grp;
+      expanded[key] = !expanded[key];
+      renderPipelineTable();
+    };
+  });
+
+  const note = document.getElementById("pipeline-table-note");
+  if (note) {
+    const modeLabel = pipelineMode === "milestone" ? "Roster Milestone"
+                    : pipelineMode === "throughput" ? "Throughput"
+                    : "End-of-AY Snapshot";
+    note.textContent = grain === "year"
+      ? `${labels.length} academic years · ${modeLabel} · capped at current AY (${p.current_ay || ''}) · click ${'▸'} on Basic Sciences or Pre-Clinical to expand`
+      : `${labels.length} semesters · per-semester snapshot · capped at current AY · click ${'▸'} on Basic Sciences or Pre-Clinical to expand`;
+  }
+}
+
+function wirePipelineControls() {
+  buildStageFilterUI();
+  document.getElementById("pipeline-mode").onchange = (e) => {
+    pipelineMode = e.target.value;
+    renderPipelineChart();
+    renderPipelineTable();
+  };
+  document.getElementById("pipeline-grain").onchange = renderPipelineTable;
+}
+
+// ---------- ACCM Cohort Funnel table ----------
+let cohortFromIdx = 0, cohortToIdx = -1;
+
+function pctCell(num, denom) {
+  if (!denom) return `<td>0<span class="pct">0%</span></td>`;
+  const p = Math.round(num/denom*100);
+  return `<td>${num}<span class="pct">${p}%</span></td>`;
+}
+
+function renderCohortTable() {
+  const c = DATA.trends.cohorts;
+  const filtered = c.slice(cohortFromIdx, cohortToIdx < 0 ? c.length : cohortToIdx + 1);
+  const t = document.getElementById("cohort-table");
+  let html = `<thead>
+    <tr>
+      <th rowspan="2">Cohort</th>
+      <th rowspan="2">Matric.</th>
+      <th rowspan="2">Transfers In</th>
+      <th colspan="2" class="group">Basic Sciences</th>
+      <th colspan="4" class="group">Attrition</th>
+      <th colspan="3" class="group">Step 1 (USMLE)</th>
+      <th colspan="2" class="group">Clinicals</th>
+      <th colspan="2" class="group">Step 2 (USMLE)</th>
+      <th rowspan="2">Graduated</th>
+      <th rowspan="2">Residency Match</th>
+      <th rowspan="2">Currently Enrolled</th>
+    </tr>
+    <tr>
+      <th>Complete (MD5)</th>
+      <th>Failed BasicSc</th>
+      <th>Acad. Dismiss</th>
+      <th>Financial</th>
+      <th>Transfer Out</th>
+      <th>Personal</th>
+      <th>Immediate</th>
+      <th>Delayed</th>
+      <th>Pass 1st</th>
+      <th>Started</th>
+      <th>Done</th>
+      <th>Takers</th>
+      <th>Pass 1st</th>
+    </tr>
+  </thead><tbody>`;
+
+  // Build per-row HTML
+  filtered.forEach((row, idx) => {
+    const n = row.matriculating;
+    html += `<tr data-cohort-idx="${idx}">
+      <td><span class="expand-btn" data-toggle="${idx}">+</span>${row.cohort}</td>
+      <td><b>${row.matriculating}</b></td>
+      ${pctCell(row.transfers, n)}
+      ${pctCell(row.basicsc_complete, n)}
+      ${pctCell(row.basicsc_failed, n)}
+      ${pctCell(row.dism_academic, n)}
+      ${pctCell(row.dism_financial, n)}
+      ${pctCell(row.dism_transfer, n)}
+      ${pctCell(row.dism_personal, n)}
+      ${pctCell(row.step1_immediate, row.basicsc_complete)}
+      ${pctCell(row.step1_delayed, row.basicsc_complete)}
+      ${pctCell(row.step1_pass_first, row.step1_takers)}
+      ${pctCell(row.clinicals_started, n)}
+      ${pctCell(row.clinicals_done, n)}
+      ${pctCell(row.step2_takers, row.clinicals_done || n)}
+      ${pctCell(row.step2_pass_first, row.step2_takers)}
+      ${pctCell(row.graduated, n)}
+      ${pctCell(row.residency, n)}
+      ${pctCell(row.currently_enrolled, n)}
+    </tr>`;
+  });
+
+  // Totals row
+  const tot = filtered.reduce((acc, r) => {
+    for (const k of Object.keys(r)) {
+      if (typeof r[k] === "number") acc[k] = (acc[k]||0) + r[k];
+    }
+    return acc;
+  }, {});
+  const T = tot.matriculating || 0;
+  html += `<tr class="totals">
+    <td>Total (${filtered.length} cohorts)</td>
+    <td><b>${T}</b></td>
+    ${pctCell(tot.transfers||0, T)}
+    ${pctCell(tot.basicsc_complete||0, T)}
+    ${pctCell(tot.basicsc_failed||0, T)}
+    ${pctCell(tot.dism_academic||0, T)}
+    ${pctCell(tot.dism_financial||0, T)}
+    ${pctCell(tot.dism_transfer||0, T)}
+    ${pctCell(tot.dism_personal||0, T)}
+    ${pctCell(tot.step1_immediate||0, tot.basicsc_complete||0)}
+    ${pctCell(tot.step1_delayed||0, tot.basicsc_complete||0)}
+    ${pctCell(tot.step1_pass_first||0, tot.step1_takers||0)}
+    ${pctCell(tot.clinicals_started||0, T)}
+    ${pctCell(tot.clinicals_done||0, T)}
+    ${pctCell(tot.step2_takers||0, tot.clinicals_done||T)}
+    ${pctCell(tot.step2_pass_first||0, tot.step2_takers||0)}
+    ${pctCell(tot.graduated||0, T)}
+    ${pctCell(tot.residency||0, T)}
+    ${pctCell(tot.currently_enrolled||0, T)}
+  </tr>`;
+  html += `</tbody>`;
+  t.innerHTML = html;
+  document.getElementById("cohort-count").textContent = `${filtered.length} cohort(s) · ${T} students`;
+
+  // Wire expand toggles
+  t.querySelectorAll("span.expand-btn").forEach(btn => {
+    btn.onclick = () => toggleCohortRow(btn, filtered);
+  });
+}
+
+function toggleCohortRow(btn, filtered) {
+  const idx = Number(btn.dataset.toggle);
+  const row = filtered[idx];
+  const tr = btn.closest("tr");
+  const existing = tr.nextElementSibling;
+  if (existing && existing.classList.contains("expand-row")) {
+    existing.remove();
+    btn.textContent = "+";
+    return;
+  }
+  btn.textContent = "−";
+  const expand = document.createElement("tr");
+  expand.className = "expand-row";
+  const td = document.createElement("td");
+  td.colSpan = 20;
+  td.innerHTML = `<b>${row.cohort}</b> · ${row.members.length} student${row.members.length===1?'':'s'}` +
+    `<div class="members">${row.members.map(m =>
+      `<a href="AUSOMA_Clinical_Rotations.html#sid=${m.sid}" title="Open in Clinical Rotations">${m.name}</a>`
+    ).join('')}</div>`;
+  expand.appendChild(td);
+  tr.parentNode.insertBefore(expand, tr.nextSibling);
+}
+
+function setupCohortFilters() {
+  const c = DATA.trends.cohorts;
+  const from = document.getElementById("cohort-from");
+  const to = document.getElementById("cohort-to");
+  c.forEach((row, i) => {
+    from.innerHTML += `<option value="${i}">${row.cohort}</option>`;
+    to.innerHTML += `<option value="${i}">${row.cohort}</option>`;
+  });
+  to.value = c.length - 1;
+  cohortToIdx = c.length - 1;
+  from.onchange = () => { cohortFromIdx = Number(from.value); renderCohortTable(); renderOutcomesChart(); };
+  to.onchange = () => { cohortToIdx = Number(to.value); renderCohortTable(); renderOutcomesChart(); };
+  document.getElementById("cohort-reset").onclick = () => {
+    cohortFromIdx = 0; cohortToIdx = c.length - 1;
+    from.value = 0; to.value = c.length - 1;
+    renderCohortTable(); renderOutcomesChart();
+  };
+}
+
+// ---------- Cohort Outcomes (horizontal stacked bar) ----------
+function renderOutcomesChart() {
+  const c = DATA.trends.cohorts;
+  const filtered = c.slice(cohortFromIdx, cohortToIdx < 0 ? c.length : cohortToIdx + 1);
+  const labels = filtered.map(r => r.cohort);
+  // Each cohort's matriculation count gets split into mutually-exclusive end-state buckets.
+  // Priority: Graduated > Currently Enrolled > Each W-Dism bucket > Unclassified.
+  const datasets = [
+    { label: "Graduated",         data: filtered.map(r => r.graduated),         backgroundColor: "#7e57c2" },
+    { label: "Currently Enrolled",data: filtered.map(r => Math.max(0, r.currently_enrolled - r.graduated)), backgroundColor: "#42a5f5" },
+    { label: "Academic Dismiss",  data: filtered.map(r => r.dism_academic),     backgroundColor: "#e57373" },
+    { label: "Financial",         data: filtered.map(r => r.dism_financial),    backgroundColor: "#ef9a9a" },
+    { label: "Transferred Out",   data: filtered.map(r => r.dism_transfer),     backgroundColor: "#ffb74d" },
+    { label: "Personal",          data: filtered.map(r => r.dism_personal),     backgroundColor: "#f48fb1" },
+  ];
+  if (window._outcomesChart) window._outcomesChart.destroy();
+  const ctx = document.getElementById("outcomesChart").getContext("2d");
+  window._outcomesChart = new Chart(ctx, {
+    type: "bar",
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: "y",
+      scales: {
+        x: { stacked: true, beginAtZero: true, title: { display:true, text:"Students" }},
+        y: { stacked: true, ticks: { font:{size:11}}}
+      },
+      plugins: { legend: { position: "bottom", labels: { font:{size:11}}}, tooltip: { mode: "index"}}
+    }
+  });
+}
+
+// ---------- USMLE First-Attempt Pass-Rate Trend ----------
+function renderPassrateChart() {
+  const c = DATA.trends.cohorts.filter(r => r.step1_takers > 0 || r.step2_takers > 0);
+  const labels = c.map(r => r.cohort);
+  const s1 = c.map(r => r.step1_takers ? Math.round(100 * r.step1_pass_first / r.step1_takers) : null);
+  const s2 = c.map(r => r.step2_takers ? Math.round(100 * r.step2_pass_first / r.step2_takers) : null);
+  const ctx = document.getElementById("passrateChart").getContext("2d");
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        { label: "Step 1 1st-attempt pass %", data: s1, borderColor: "#1565c0", backgroundColor: "#1565c0",
+          tension: 0.25, spanGaps: true, pointRadius: 4 },
+        { label: "Step 2 1st-attempt pass %", data: s2, borderColor: "#2e7d32", backgroundColor: "#2e7d32",
+          tension: 0.25, spanGaps: true, pointRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + "%" }, title: { display:true, text:"Pass rate" }}},
+      plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%` }}}
+    }
+  });
+}
+
+setupCohortFilters();
+wirePipelineControls();
+renderPipelineChart();
+renderPipelineTable();
+renderCohortTable();
+renderOutcomesChart();
+renderPassrateChart();
+</script>

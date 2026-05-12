@@ -74,11 +74,14 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .roster { max-height: calc(100vh - 200px); overflow:auto; }
 .roster.compact { max-height: calc(100vh - 380px); min-height:340px; }  /* stacked layout: still leaves room for the detail panel below */
 .roster table { width:100%; border-collapse:collapse; }
-/* Sticky headers — row 1 sits below the tab strip (~36px tall), row 2 sits
-   below row 1 (~32px tall). Both rows freeze at the top of the scroll
-   container so they remain visible as the user scrolls through students. */
-.roster thead th { position:sticky; top:36px; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
-.roster thead tr:nth-child(2) th { top:68px; background:#e6ebf3; border-top:1px solid var(--border); }
+/* Sticky thead — locks to the top of the scroll container so column labels
+   stay visible while scrolling. Default offset is 0 (no tab strip above the
+   table). On pages that have a .roster-tabs strip above the table, push the
+   thead down so it sits underneath the tabs instead of being hidden by them. */
+.roster thead th { position:sticky; top:0; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
+.roster thead tr:nth-child(2) th { top:32px; background:#e6ebf3; border-top:1px solid var(--border); }
+.roster:has(.roster-tabs) thead th { top:36px; }
+.roster:has(.roster-tabs) thead tr:nth-child(2) th { top:68px; }
 .roster thead th.group-hdr { background:var(--brand); color:white; text-align:center; font-weight:700; cursor:default; border-bottom:1px solid white; letter-spacing:.06em; }
 .roster thead th.group-hdr:hover { background:var(--brand); }
 .roster thead th.group-hdr.prev { background:#6b7a93; }
@@ -224,9 +227,9 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-05-12 07:35 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-12 09:18 AST · Term Summer 2026</div>
 </header>
-<nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
+<nav class="tabs"><a href="index.html">Roster &amp; Journey</a><a href="AUSOMA_Student_Academic_Metrics.html">Student Academic Metrics</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
 <div class="legend-modal-bg" id="legend-modal-bg" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="legend-modal">
