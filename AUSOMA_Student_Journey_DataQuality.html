@@ -72,7 +72,11 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
 
 .roster { max-height: calc(100vh - 200px); overflow:auto; }
-.roster.compact { max-height: calc(100vh - 380px); min-height:340px; }  /* stacked layout: still leaves room for the detail panel below */
+/* Clinical Rotations uses a stacked layout (roster on top, detail panel below).
+   We grew the roster max-height by ~20% so more student rows fit at once; the
+   detail panel still has its own scroll, so this just shifts vertical real
+   estate from "below" the table to "in" the table. */
+.roster.compact { max-height: calc(100vh - 240px); min-height:420px; }
 .roster table { width:100%; border-collapse:collapse; }
 /* Sticky thead — locks to the top of the scroll container so column labels
    stay visible while scrolling. Default offset is 0 (no tab strip above the
@@ -238,7 +242,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-05-13 06:42 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-13 06:52 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
