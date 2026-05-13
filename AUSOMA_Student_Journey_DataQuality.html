@@ -125,10 +125,13 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .roster-tabs .hint { font:500 11px/1.6 system-ui, sans-serif; color:var(--muted); padding:7px 6px; }
 .roster thead th .sortarr { color:var(--muted); margin-left:4px; font-size:10px; }
 .roster thead th.sorted .sortarr { color:var(--accent); }
-.roster tbody tr { cursor:pointer; border-bottom:1px solid #eef0f4; }
-.roster tbody tr:hover { background:#f7f9fd; }
-.roster tbody tr.selected { background:#dbe7f9; box-shadow: inset 4px 0 0 var(--brand), inset -1px 0 0 var(--brand); }
-.roster tbody tr.selected:hover { background:#cfdef5; }
+.roster tbody tr { cursor:pointer; border-bottom:1px solid #e1e6ee; }
+/* Zebra striping — subtle alternating background so adjacent rows are easy to
+   tell apart while scanning. Hover and selected states override. */
+.roster tbody tr:nth-child(even) { background:#f5f7fb; }
+.roster tbody tr:hover { background:#e8eef8 !important; }
+.roster tbody tr.selected { background:#dbe7f9 !important; box-shadow: inset 4px 0 0 var(--brand), inset -1px 0 0 var(--brand); }
+.roster tbody tr.selected:hover { background:#cfdef5 !important; }
 .roster tbody tr.selected td .name { color:var(--brand); }
 .roster td { padding:8px 10px; vertical-align:top; }
 .roster .name { font-weight:600; }
@@ -242,7 +245,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-05-13 14:05 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-13 14:26 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
