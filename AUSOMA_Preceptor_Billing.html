@@ -57,6 +57,14 @@ table.billing td.center, table.billing th.center { text-align:center; }
 .pill.eval-pend { background:#fff4d6; color:#7a5a00; }
 .pill.kind-core { background:#e0eaff; color:#102a5c; font-size:10px; }
 .pill.kind-elective { background:#fde4c5; color:#5a3a00; font-size:10px; }
+/* Rotation State pills — Complete = green (matches Submitted/Paid). Active =
+   amber (matches Evaluation Pending). Scheduled = blue (informational, not a
+   warning). Pending = neutral gray (no data yet). */
+.pill.state-complete { background:#dff5e0; color:#0f5128; }
+.pill.state-active, .pill.state-in-progress { background:#fff4d6; color:#7a5a00; }
+.pill.state-scheduled { background:#dce7f8; color:#0a3478; }
+.pill.state-pending { background:#eef0f4; color:#5b6677; }
+.pill.state-complete-incomplete-data { background:#dff5e0; color:#0f5128; }
 .note { padding:18px 22px; color:var(--muted); font-size:12px; }
 /* Hide $ mode: fully remove the Cost column, the Total Cost KPI card, and any
    inline $ value (e.g. paid/unpaid sub-text) so the layout doesn't look like
@@ -87,7 +95,7 @@ body.hide-money .kpi-money { display:none !important; }
     <button id="export-csv">📊 Export</button>
     <button id="print">🖨 Print</button>
   </div>
-  <div class="meta">Last Updated 2026-05-13 14:26 AST</div>
+  <div class="meta">Last Updated 2026-05-13 19:45 AST</div>
 </header>
 
 <section class="kpi" id="kpi"></section>
@@ -127,7 +135,8 @@ body.hide-money .kpi-money { display:none !important; }
     <select id="f-state">
       <option value="">All</option>
       <option value="complete">Complete</option>
-      <option value="active">Active</option>
+      <option value="active">In Progress</option>
+      <option value="in-progress">Dates Missing</option>
       <option value="scheduled">Scheduled</option>
       <option value="pending">Pending</option>
     </select>
@@ -139,7 +148,7 @@ body.hide-money .kpi-money { display:none !important; }
 <table class="billing" id="t"><thead><tr id="hd"></tr></thead><tbody id="bd"></tbody></table>
 
 <script>
-const DATA = {"rows":[{"student_name":"Jean, Zariah","student_id":2020000001,"kind":"Elective","code":"E4","name":"Emergency Medicine","specialty":"Emergency Medicine","preceptor":"Dr. Innis","location":"Virginia - Bon Secours","start":"2025-09-02","end":"2025-10-10","weeks":6,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":2400},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr. Scott Brown","location":"Virginia - Bon Secours","start":"2025-10-06","end":"2025-12-26","weeks":12,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":4800},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"PSYCH","name":"Psychiatry","specialty":"Psychiatry","preceptor":"Dr. Mitchell T Storar","location":"Virginia - Bon Secours","start":"2026-04-13","end":"2026-05-22","weeks":6,"state":"active","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-02-27","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Dhaliwal, Jaskaran","student_id":2023000005,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-02-27","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Dhaliwal, Jaskaran","student_id":2023000005,"kind":"Elective","code":"E1","name":"Nephrology","specialty":"Nephrology","preceptor":"Dr. Patel","location":"Virginia - Bon Secours","start":"2026-03-23","end":"2026-04-17","weeks":4,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":1600},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"SURG","name":"Surgery","specialty":"Surgery","preceptor":"Dr. Yeshtokin","location":"Virginia - Bon Secours","start":"2025-07-21","end":"2025-10-10","weeks":12,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":4800},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"PSYCH","name":"Psychiatry","specialty":"Psychiatry","preceptor":"Dr.  Storar","location":"Virginia - Bon Secours","start":"2025-12-15","end":"2025-01-23","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":true,"cost":2400},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2025-10-13","end":"2025-11-21","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Elective","code":"E1","name":"Plastic Surgery","specialty":"Plastic Surgery","preceptor":"Dr. Kyle Xu","location":"Virginia - Bon Secours","start":"2026-02-09","end":"2026-03-06","weeks":4,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":1600},{"student_name":"Lee, Gae","student_id":2023000040,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr.Scott-Brown, Dr.Li","location":"Virginia - Bon Secours","start":"2026-03-09","end":"2026-05-29","weeks":12,"state":"active","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800},{"student_name":"Kushakov, Otabek","student_id":2023000020,"kind":"Core","code":"SURG","name":"Surgery","specialty":"Surgery","preceptor":"Dr. Youssef","location":"Virginia - Bon Secours","start":"2026-02-16","end":"2026-05-08","weeks":12,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800},{"student_name":"Kushakov, Otabek","student_id":2023000020,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-05-29","weeks":6,"state":"active","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Seba, Rafeal","student_id":2025000016,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr. Beverly","location":"Virginia - Bon Secours","start":"2025-12-07","end":"2026-02-27","weeks":12,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800}],"locations":["Virginia - Bon Secours"],"preceptors":["Dr.  Storar","Dr. Beverly","Dr. Gray and Dr. Morrison","Dr. Innis","Dr. Kyle Xu","Dr. Mitchell T Storar","Dr. Morrison","Dr. Patel","Dr. Scott Brown","Dr. Yeshtokin","Dr. Youssef","Dr.Scott-Brown, Dr.Li"],"rate":400,"build_ts":"2026-05-13 14:26 AST"};
+const DATA = {"rows":[{"student_name":"Jean, Zariah","student_id":2020000001,"kind":"Elective","code":"E4","name":"Emergency Medicine","specialty":"Emergency Medicine","preceptor":"Dr. Innis","location":"Virginia - Bon Secours","start":"2025-09-02","end":"2025-10-10","weeks":6,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":2400},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr. Scott Brown","location":"Virginia - Bon Secours","start":"2025-10-06","end":"2025-12-26","weeks":12,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":4800},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"PSYCH","name":"Psychiatry","specialty":"Psychiatry","preceptor":"Dr. Mitchell T Storar","location":"Virginia - Bon Secours","start":"2026-04-13","end":"2026-05-22","weeks":6,"state":"active","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Larmonie, Marie-Claire","student_id":2022000024,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-02-27","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Dhaliwal, Jaskaran","student_id":2023000005,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2026-01-19","end":"2026-02-27","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Dhaliwal, Jaskaran","student_id":2023000005,"kind":"Elective","code":"E1","name":"Nephrology","specialty":"Nephrology","preceptor":"Dr. Patel","location":"Virginia - Bon Secours","start":"2026-03-23","end":"2026-04-17","weeks":4,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":1600},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"SURG","name":"Surgery","specialty":"Surgery","preceptor":"Dr. Yeshtokin","location":"Virginia - Bon Secours","start":"2025-07-21","end":"2025-10-10","weeks":12,"state":"complete","billing_status":"Paid","paid":true,"eval_submitted":true,"cost":4800},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"PSYCH","name":"Psychiatry","specialty":"Psychiatry","preceptor":"Dr.  Storar","location":"Virginia - Bon Secours","start":"2025-12-15","end":"2025-01-23","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":true,"cost":2400},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"2025-10-13","end":"2025-11-21","weeks":6,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Soofi, Saleeha","student_id":2024000002,"kind":"Elective","code":"E1","name":"Plastic Surgery","specialty":"Plastic Surgery","preceptor":"Dr. Kyle Xu","location":"Virginia - Bon Secours","start":"2026-02-09","end":"2026-03-06","weeks":4,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":1600},{"student_name":"Lee, Gae","student_id":2023000040,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr.Scott-Brown, Dr.Li","location":"Virginia - Bon Secours","start":"2026-03-09","end":"2026-05-29","weeks":12,"state":"active","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800},{"student_name":"Kushakov, Otabek","student_id":2023000020,"kind":"Core","code":"SURG","name":"Surgery","specialty":"Surgery","preceptor":"Dr. Youssef","location":"Virginia - Bon Secours","start":"2026-02-16","end":"2026-05-08","weeks":12,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800},{"student_name":"Kushakov, Otabek","student_id":2023000020,"kind":"Core","code":"OBGYN","name":"OB-GYN","specialty":"OB-GYN","preceptor":"Dr. Gray and Dr. Morrison","location":"Virginia - Bon Secours","start":"","end":"","weeks":6,"state":"in-progress","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":2400},{"student_name":"Seba, Rafeal","student_id":2025000016,"kind":"Core","code":"IM","name":"Internal Medicine","specialty":"Internal Medicine","preceptor":"Dr. Beverly","location":"Virginia - Bon Secours","start":"2025-12-07","end":"2026-02-27","weeks":12,"state":"complete","billing_status":"Pending","paid":false,"eval_submitted":false,"cost":4800}],"locations":["Virginia - Bon Secours"],"preceptors":["Dr.  Storar","Dr. Beverly","Dr. Gray and Dr. Morrison","Dr. Innis","Dr. Kyle Xu","Dr. Mitchell T Storar","Dr. Patel","Dr. Scott Brown","Dr. Yeshtokin","Dr. Youssef","Dr.Scott-Brown, Dr.Li"],"rate":400,"build_ts":"2026-05-13 19:45 AST"};
 const RATE = DATA.rate;
 const cols = [
   { key:"student_name", label:"Student" },
@@ -161,6 +170,19 @@ let sortKey = "student_name", sortDir = 1;
 const selectedLocs = new Set();
 
 function fmtMoney(n) { return n.toLocaleString("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 }); }
+
+// Map raw state values to user-facing labels.
+//   active      -> 'In Progress' (clean date window containing today)
+//   in-progress -> 'Dates Missing' (some data, but start/end missing — data gap)
+const STATE_LABELS = {
+  "active":      "In Progress",
+  "in-progress": "Dates Missing",
+  "complete":    "Complete",
+  "complete-incomplete-data": "Complete",
+  "scheduled":   "Scheduled",
+  "pending":     "Pending",
+};
+function stateLabel(s) { return STATE_LABELS[s] || (s ? s.charAt(0).toUpperCase() + s.slice(1) : ""); }
 
 function matchesRow(r) {
   const q = document.getElementById("q").value.trim().toLowerCase();
@@ -259,7 +281,7 @@ function render() {
       <td>${r.end || '<span style="color:#888">—</span>'}</td>
       <td class="center">${r.weeks || ''}</td>
       <td class="num col-money">${r.weeks ? fmtMoney(r.cost) : '—'}</td>
-      <td>${r.state}</td>
+      <td>${r.state ? `<span class="pill state-${r.state}">${stateLabel(r.state)}</span>` : '—'}</td>
       <td>${evalPill}</td>
       <td>${paidPill}</td>
     </tr>`;
@@ -350,7 +372,7 @@ document.getElementById("export-csv").onclick = () => {
       r.student_name, r.student_id, r.kind, r.specialty || r.code,
       r.preceptor, r.location, r.start, r.end,
       r.weeks || "", r.weeks ? r.cost : "",
-      r.state, r.eval_submitted ? "Submitted" : "Pending",
+      stateLabel(r.state), r.eval_submitted ? "Submitted" : "Pending",
       r.billing_status || (r.paid ? "Paid" : "Pending"),
     ].map(csvEscape).join(","));
   });
