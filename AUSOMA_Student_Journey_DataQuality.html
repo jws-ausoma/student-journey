@@ -42,6 +42,13 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .kpi .card.stage-Grad     { border-color:var(--st-Grad);      background:#fdfbff; }
 .kpi .card .breakdown { display:flex; gap:10px; margin-top:2px; font-size:10.5px; color:var(--muted); line-height:1.2; }
 .kpi .card .breakdown b { color:var(--ink); font-weight:700; }
+/* Sub-segments inside the breakdown row (e.g., Between · ASF · LOA on the
+   Clinical Rotations page) can be individually clickable. The .on state
+   highlights the segment whose filter is currently applied. */
+.kpi .card .breakdown .bd-seg { cursor:pointer; padding:1px 5px; border-radius:99px; transition:background .12s; }
+.kpi .card .breakdown .bd-seg:hover { background:rgba(11,61,145,.10); color:var(--ink); }
+.kpi .card .breakdown .bd-seg.on { background:var(--accent); color:#fff; }
+.kpi .card .breakdown .bd-seg.on b { color:#fff; }
 .kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1.1; }
 .kpi .value { font-size:18px; font-weight:700; margin-top:1px; color:var(--ink); line-height:1.1; }
 .kpi .sub { font-size:10.5px; color:var(--muted); line-height:1.2; }
@@ -54,6 +61,8 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .kpi-visible.stage-BasicSc b { color:#073447; }
 
 .filters { display:flex; gap:8px 14px; flex-wrap:wrap; padding:10px 22px; background:#fff; border-bottom:1px solid var(--border); align-items:center; position:sticky; top:0; z-index:5; }
+.filters a.src-link { display:inline-flex; align-items:center; padding:5px 10px; border:1.5px solid #d4a000; border-radius:6px; background:#fff4c4; color:#5a4500; font-size:12px; font-weight:600; text-decoration:none; }
+.filters a.src-link:hover { background:#ffe689; color:#3d2f00; border-color:#b88800; }
 .filters label { font-size:12px; color:var(--muted); font-weight:600; }
 .filters select, .filters input[type=text] { font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; color:var(--ink); box-shadow:0 1px 2px rgba(11,61,145,.08); transition:border-color .15s, box-shadow .15s; }
 .filters select:hover, .filters input[type=text]:hover { border-color:var(--brand-2); }
@@ -72,11 +81,11 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
 
 .roster { max-height: calc(100vh - 200px); overflow:auto; }
-/* Clinical Rotations uses a stacked layout (roster on top, detail panel below).
-   We grew the roster max-height by ~20% so more student rows fit at once; the
-   detail panel still has its own scroll, so this just shifts vertical real
-   estate from "below" the table to "in" the table. */
-.roster.compact { max-height: calc(100vh - 240px); min-height:420px; }
+/* Compact roster (Student Roster + Clinical Rotations pages): keep the list
+   short so it shows ~4 students at a time before scrolling, leaving room for
+   the detail panel below it. The header is sticky, so the visible scroll area
+   is height minus the thead. */
+.roster.compact { max-height: 320px; min-height:240px; overflow:auto; }
 .roster table { width:100%; border-collapse:collapse; }
 /* Sticky thead — locks to the top of the scroll container so column labels
    stay visible while scrolling. Default offset is 0 (no tab strip above the
@@ -133,6 +142,17 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .roster tbody tr.selected { background:#dbe7f9 !important; box-shadow: inset 4px 0 0 var(--brand), inset -1px 0 0 var(--brand); }
 .roster tbody tr.selected:hover { background:#cfdef5 !important; }
 .roster tbody tr.selected td .name { color:var(--brand); }
+/* ASF student row — soft amber tint so the user can spot ASF students at a
+   glance. Even-row striping and selected state still take precedence. */
+.roster tbody tr.asf-row { background:#fff4d6; }
+.roster tbody tr.asf-row:nth-child(even) { background:#fbecc4; }
+.roster tbody tr.asf-row:hover { background:#ffe9b5 !important; }
+.roster tbody tr.asf-row .asf-badge { display:inline-block; background:#d4a000; color:#fff; font-size:9px; font-weight:700; padding:1px 6px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.04em; text-transform:uppercase; }
+/* LOA student row — soft lavender tint to differentiate from ASF. */
+.roster tbody tr.loa-row { background:#efe7fb; }
+.roster tbody tr.loa-row:nth-child(even) { background:#e2d6f5; }
+.roster tbody tr.loa-row:hover { background:#dccaef !important; }
+.roster tbody tr.loa-row .loa-badge { display:inline-block; background:#6b3fa3; color:#fff; font-size:9px; font-weight:700; padding:1px 6px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.04em; text-transform:uppercase; }
 .roster td { padding:8px 10px; vertical-align:top; }
 .roster .name { font-weight:600; }
 .roster .meta { color:var(--muted); font-size:11px; }
@@ -147,6 +167,21 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .type-pill { font-size:11px; padding:2px 7px; border-radius:4px; font-weight:600; }
 .type-New { background:#e0eaff; color:#102a5c; }
 .type-XFR { background:#fde4c5; color:#5a3a00; }
+/* Program Level pills — shades of blue, lighter for PM, deeper for MD,
+   distinct hues for Pre-Clinical and Clinical aggregate levels. */
+.prog-pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; white-space:nowrap; }
+.prog-pm1 { background:#eaf1fb; color:#102a5c; }
+.prog-pm2 { background:#d8e5f6; color:#102a5c; }
+.prog-pm3 { background:#c4d7f0; color:#102a5c; }
+.prog-pm4 { background:#b0c8eb; color:#0e2454; }
+.prog-md1 { background:#9bbae6; color:#0c1f4a; }
+.prog-md2 { background:#7da7df; color:#0c1f4a; }
+.prog-md3 { background:#5e91d6; color:white; }
+.prog-md4 { background:#3f7bcd; color:white; }
+.prog-md5 { background:#1656b8; color:white; }
+.prog-preclin { background:#dce7f8; color:#0a3478; }
+.prog-clinical { background:#0a3478; color:white; }
+.prog-none { background:#eee; color:#666; }
 
 .detail { padding:18px 20px; max-height: calc(100vh - 280px); overflow:auto; }
 .layout.stacked .detail { max-height: none; overflow: visible; }
@@ -180,6 +215,22 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 
 .legend-row { display:flex; gap:10px; flex-wrap:wrap; padding:8px 22px; background:#fbfcfe; border-top:1px solid var(--border); font-size:11px; }
 .legend-row .swatch { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:middle; margin-right:4px; }
+
+/* Generic multi-pick dropdown panel (used by Program Level filter). The
+   trigger button shows a summary; clicking opens a checkbox list. */
+.multi-pick { position:relative; display:inline-block; }
+.multi-pick .trigger { display:inline-flex; align-items:center; gap:6px; font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; color:var(--ink); cursor:pointer; min-width:160px; }
+.multi-pick .trigger:hover { background:#f3f6fb; }
+.multi-pick .trigger .badge { background:var(--brand); color:white; font-size:11px; font-weight:700; padding:1px 7px; border-radius:99px; display:none; }
+.multi-pick .trigger.has-selection .badge { display:inline-block; }
+.multi-pick .panel { position:absolute; top:calc(100% + 4px); left:0; background:white; border:1.5px solid var(--brand); border-radius:6px; min-width:220px; max-width:320px; display:none; flex-direction:column; box-shadow:0 6px 20px rgba(11,52,120,.18); z-index:10; padding:8px; gap:8px; }
+.multi-pick.open .panel { display:flex; }
+.multi-pick .panel .list { display:grid; grid-template-columns:1fr 1fr; gap:2px 8px; }
+.multi-pick .panel .list label { display:flex; align-items:center; gap:6px; padding:3px 4px; font-size:12px; cursor:pointer; border-radius:3px; color:var(--ink); font-weight:400; white-space:nowrap; }
+.multi-pick .panel .list label:hover { background:#f3f6fb; }
+.multi-pick .panel .quick { display:flex; gap:6px; border-top:1px solid var(--border); padding-top:6px; flex-wrap:wrap; }
+.multi-pick .panel .quick button { background:none; border:1px solid var(--border); color:var(--brand); font-weight:600; cursor:pointer; font:11px inherit; padding:3px 8px; border-radius:4px; }
+.multi-pick .panel .quick button:hover { background:#f3f6fb; border-color:var(--brand); }
 
 .note { white-space:pre-wrap; padding:10px; background:#fff8e6; border:1px solid #f0d896; border-radius:6px; font-size:13px; }
 .empty-detail { color:var(--muted); padding:40px; text-align:center; }
@@ -245,7 +296,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-05-13 19:45 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-13 22:06 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
