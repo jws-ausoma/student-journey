@@ -549,7 +549,7 @@ function studentMatchesFilters(t) {
   }
   const rs = document.getElementById("rstate").value;
   if (rs === "active") { if (!(t.rot && t.rot.cur_rotation_label)) return false; }
-  else if (rs === "between") { if (t.rot && t.rot.cur_rotation_label) return false; if (!t.rot) return false; }
+  else if (rs === "between") { if (t.rot && t.rot.cur_rotation_label) return false; if (!t.rot) return false; if (t.is_asf || t.is_loa) return false; }
   else if (rs === "asf") { if (!t.is_asf) return false; }
   else if (rs === "loa") { if (!t.is_loa) return false; }
   else if (rs === "not-started") { if (t.rot) return false; }
