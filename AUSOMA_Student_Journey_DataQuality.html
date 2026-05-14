@@ -40,7 +40,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .kpi .card.stage-Clinicals{ border-color:var(--st-Clinicals); background:#fbfffc; }
 .kpi .card.stage-Exited   { border-color:var(--st-Exited);    background:#fffbfb; }
 .kpi .card.stage-Grad     { border-color:var(--st-Grad);      background:#fdfbff; }
-.kpi .card .breakdown { display:flex; gap:10px; margin-top:2px; font-size:10.5px; color:var(--muted); line-height:1.2; }
+.kpi .card .breakdown { display:flex; gap:10px; margin-top:2px; font-size:10.5px; color:var(--muted); line-height:1.2; flex-wrap:wrap; }
 .kpi .card .breakdown b { color:var(--ink); font-weight:700; }
 /* Sub-segments inside the breakdown row (e.g., Between · ASF · LOA on the
    Clinical Rotations page) can be individually clickable. The .on state
@@ -49,6 +49,12 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .kpi .card .breakdown .bd-seg:hover { background:rgba(11,61,145,.10); color:var(--ink); }
 .kpi .card .breakdown .bd-seg.on { background:var(--accent); color:#fff; }
 .kpi .card .breakdown .bd-seg.on b { color:#fff; }
+/* Basic Sciences card has five MD chips (MD1..MD5) which wrap or overflow on
+   narrower KPI columns. Tighten the gap and padding and shrink the font so
+   they all fit on a single line at normal column widths. */
+.kpi .card .breakdown.md-breakdown { gap:3px; font-size:10px; }
+.kpi .card .breakdown.md-breakdown .bd-seg { padding:1px 3px; white-space:nowrap; }
+.kpi .card .breakdown.md-breakdown .bd-seg b { margin-right:1px; }
 .kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1.1; }
 .kpi .value { font-size:18px; font-weight:700; margin-top:1px; color:var(--ink); line-height:1.1; }
 .kpi .sub { font-size:10.5px; color:var(--muted); line-height:1.2; }
@@ -296,7 +302,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-05-13 22:06 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-13 22:17 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
