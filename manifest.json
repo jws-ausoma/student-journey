@@ -1,0 +1,27 @@
+{
+  "name": "AUSOMA Student Journey",
+  "short_name": "AUSOMA Journey",
+  "description": "AUSOMA Student Journey — roster, pre-clinical, clinical rotations, cohort trends, and data-quality dashboards.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0a3478",
+  "theme_color": "#0a3478",
+  "lang": "en",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "icon.svg",                "type": "image/svg+xml", "sizes": "any",     "purpose": "any" },
+    { "src": "icon-192.png",            "type": "image/png",     "sizes": "192x192", "purpose": "any" },
+    { "src": "icon-512.png",            "type": "image/png",     "sizes": "512x512", "purpose": "any" },
+    { "src": "icon-512-maskable.png",   "type": "image/png",     "sizes": "512x512", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Student Roster",        "url": "./index.html",                              "description": "Active roster + longitudinal journey view" },
+    { "name": "Pre-Clinical",          "url": "./AUSOMA_Pre_Clinical_Beyond_MD5.html",     "description": "CBSE attempts and Step 1 / Step 2 status" },
+    { "name": "Clinical Rotations",    "url": "./AUSOMA_Clinical_Rotations.html",          "description": "Cores, electives, and upcoming starts" },
+    { "name": "Cohort Trends",         "url": "./AUSOMA_Cohort_Trends.html",               "description": "Cohort-over-cohort analytics" },
+    { "name": "Data Quality",          "url": "./AUSOMA_Student_Journey_DataQuality.html", "description": "Tag-normalization and audit issues" }
+  ]
+}

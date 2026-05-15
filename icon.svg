@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AUSOMA Student Journey">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a3478"/>
+      <stop offset="1" stop-color="#062357"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  <!-- Subtle gold rule under the wordmark, echoes the topbar accent -->
+  <rect x="112" y="338" width="288" height="8" rx="4" fill="#f0a500"/>
+  <!-- Wordmark: A · S monogram for AUSOMA · Student Journey -->
+  <g font-family="-apple-system, system-ui, 'Helvetica Neue', Arial, sans-serif"
+     font-weight="800"
+     fill="#ffffff"
+     text-anchor="middle">
+    <text x="256" y="290" font-size="220" letter-spacing="-8">AS</text>
+    <text x="256" y="392" font-size="46" letter-spacing="6" fill="#cfd6e6">AUSOMA</text>
+  </g>
+</svg>
