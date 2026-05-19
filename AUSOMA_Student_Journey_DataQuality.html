@@ -24,10 +24,10 @@ header.topbar img { height:34px; }
 header.topbar h1 { margin:0; font-size:18px; font-weight:600; letter-spacing:.2px; }
 header.topbar .meta { margin-left:auto; font-size:12px; opacity:.85; }
 
-nav.tabs { background:#0a3478; padding:0 22px; display:flex; gap:0; border-bottom:3px solid var(--accent); }
-nav.tabs a { color:#dde6f5; text-decoration:none; padding:10px 18px; font-size:13px; font-weight:600; border-bottom:3px solid transparent; margin-bottom:-3px; }
-nav.tabs a:hover { color:white; background:rgba(255,255,255,.05); }
-nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:rgba(255,255,255,.07); }
+nav.tabs { background:#0a3478; padding:8px 22px 0; display:flex; gap:4px; border-bottom:3px solid var(--accent); align-items:flex-end; flex-wrap:wrap; }
+nav.tabs a { display:inline-block; color:#dde6f5; background:#15417f; text-decoration:none; padding:8px 18px 9px; font-size:13px; font-weight:600; border:1px solid #1c4a8d; border-bottom:none; border-radius:9px 9px 0 0; margin-bottom:-3px; line-height:1.2; transition:background .15s, color .15s; }
+nav.tabs a:hover { color:#fff; background:#1d4f99; }
+nav.tabs a.active { color:#0a3478; background:var(--accent); border-color:var(--accent); font-weight:700; padding-bottom:12px; box-shadow:0 -1px 4px rgba(0,0,0,.08); }
 
 .kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:6px; padding:6px 22px 4px 22px; background:#fff; }
 .kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:5px 10px; box-shadow:0 1px 2px rgba(11,61,145,.06); transition:transform .1s, box-shadow .15s, background .15s; }
@@ -56,6 +56,19 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 .kpi .card .breakdown.md-breakdown { gap:3px; font-size:10px; }
 .kpi .card .breakdown.md-breakdown .bd-seg { padding:1px 3px; white-space:nowrap; }
 .kpi .card .breakdown.md-breakdown .bd-seg b { margin-right:1px; }
+/* Show/hide sub-totals toggle. Default state (no body class) keeps chips
+   hidden — set in JS at page load so re-renders inherit the preference. */
+body.hide-subtotals .kpi .card .breakdown { display:none; }
+/* The toggle button sits at the right end of the "In view" row so it shares
+   visual real estate with the same-row sub-totals it controls. The row
+   wrapper takes over the kpi-visible's background/border so the row reads
+   as one continuous bar; .kpi-visible is made transparent inside it. */
+.kpi-visible-row { display:flex; align-items:stretch; background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+.kpi-visible-row .kpi-visible { flex:1; background:transparent; border-top:none; border-bottom:none; }
+.kpi-visible-row .subtotals-toggle { align-self:center; margin:0 14px 0 8px; flex-shrink:0; }
+.subtotals-toggle { font:11px inherit; padding:3px 11px; border:1px solid var(--brand); border-radius:99px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; line-height:1.4; white-space:nowrap; }
+.subtotals-toggle:hover { background:var(--brand-2); color:#fff; border-color:var(--brand-2); }
+.subtotals-toggle.on { background:var(--brand); color:#fff; }
 .kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1.1; }
 .kpi .value { font-size:18px; font-weight:700; margin-top:1px; color:var(--ink); line-height:1.1; }
 .kpi .sub { font-size:10.5px; color:var(--muted); line-height:1.2; }
@@ -321,7 +334,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-05-19 17:10 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-05-19 18:08 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
@@ -357,7 +370,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <tr><td class="tag"><span class="pill">LOA-F</span></td><td>First Leave of Absence — non-billable (now relabeled as ST)</td></tr>
 <tr><td class="tag"><span class="pill">LOA-M</span></td><td>Medical Leave of Absence</td></tr>
 <tr><td class="tag"><span class="pill">ASF</span></td><td>Academic Standing Fee — student paying to keep enrollment active</td></tr>
-<tr><td class="tag"><span class="pill">IST</span></td><td>Independent Study Time — first 4 months after first MD5, non-billable</td></tr>
+<tr><td class="tag"><span class="pill">IBST</span></td><td>Independent Basics Study Time — first 4 months after first MD5, non-billable (formerly IST)</td></tr>
 <tr><td class="tag"><span class="pill">ST</span></td><td>Study Time (formerly LOA-F)</td></tr>
 <tr><td class="tag"><span class="pill">S1P</span></td><td>USMLE Step 1 Passed</td></tr>
 <tr><td class="tag"><span class="pill">S1P2</span></td><td>USMLE Step 1 Passed (2nd attempt)</td></tr>
@@ -366,6 +379,7 @@ nav.tabs a.active { color:white; border-bottom-color:var(--accent); background:r
 <tr><td class="tag"><span class="pill">S1F3</span></td><td>USMLE Step 1 Failed (3rd attempt)</td></tr>
 </table></div>
 <div class="legend-stage Clinicals"><h3>Clinicals (cores, electives, Step 2, Match)</h3><table>
+<tr><td class="tag"><span class="pill">ICST</span></td><td>Independent Clinicals Study Time — non-billable gap between clinical blocks</td></tr>
 <tr><td class="tag"><span class="pill">CC</span></td><td>Clinical Core (generic)</td></tr>
 <tr><td class="tag"><span class="pill">CC1</span></td><td>Clinical Core block 1</td></tr>
 <tr><td class="tag"><span class="pill">CC2</span></td><td>Clinical Core block 2</td></tr>
