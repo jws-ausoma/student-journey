@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — AUSOMA Student Finance</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         max-width: 760px; margin: 2rem auto; padding: 0 1.25rem; color: #1f2937;
+         line-height: 1.6; }
+  header { border-bottom: 2px solid #1e3a8a; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  h1 { color: #1e3a8a; font-size: 1.5rem; margin: 0 0 .25rem 0; }
+  .sub { color: #6b7280; font-size: .9rem; }
+  h2 { color: #1e3a8a; font-size: 1.1rem; margin-top: 1.75rem; }
+  nav { background: #f3f4f6; border-radius: 6px; padding: .75rem 1rem;
+        margin-top: 1.5rem; font-size: .9rem; }
+  nav a { color: #1e3a8a; text-decoration: none; margin-right: 1rem; }
+  nav a:hover { text-decoration: underline; }
+  footer { border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 2.5rem;
+           color: #6b7280; font-size: .8rem; }
+  table { border-collapse: collapse; margin: 1rem 0; font-size: .9rem; width: 100%; }
+  th, td { border: 1px solid #e5e7eb; padding: .5rem .75rem; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; color: #1e3a8a; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Privacy Policy</h1>
+  <div class="sub">AUSOMA Student Finance Reconciliation Tool &middot; Effective 2026-05-19</div>
+</header>
+
+<p>This Privacy Policy describes how the AUSOMA Student Finance Reconciliation Tool (the "Tool"), operated by American University School of Medicine of Aruba ("AUSOMA"), accesses, uses, and protects data.</p>
+
+<h2>1. Scope</h2>
+<p>The Tool is an internal application used solely by authorized AUSOMA staff. It is not offered to any party outside AUSOMA and does not collect data from any party other than AUSOMA's existing service providers acting under contract with AUSOMA.</p>
+
+<h2>2. Data Accessed</h2>
+<p>The Tool accesses the following categories of data, via read-only authenticated API connections, on behalf of AUSOMA:</p>
+<table>
+  <thead>
+    <tr><th>Source</th><th>Categories of data accessed</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Intuit QuickBooks Online</td>
+      <td>Customer records, invoice records, payment records, item catalog, deposit records</td>
+      <td>Compare AUSOMA's accounting records against expected charges derived from enrollment</td>
+    </tr>
+    <tr>
+      <td>Populi</td>
+      <td>Student records, invoice records, payment records, charge codes, academic-term records</td>
+      <td>Compare AUSOMA's student-information-system billing against accounting records</td>
+    </tr>
+    <tr>
+      <td>Stripe</td>
+      <td>Charge records, payout records, balance-transaction records</td>
+      <td>Reconcile electronic payments to deposits in AUSOMA's accounting system</td>
+    </tr>
+    <tr>
+      <td>AUSOMA enrollment files (Microsoft 365)</td>
+      <td>Student enrollment status, program phase, registered terms, clinical rotation assignments</td>
+      <td>Derive expected charges per student per term</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. Sensitive Personal Information</h2>
+<p>The Tool may incidentally receive sensitive personal identifiers (e.g., government identification numbers) in API responses from AUSOMA's service providers. Such fields are dropped from memory at ingest and are not persisted to any storage operated by the Tool, transmitted outside AUSOMA's authorized infrastructure, included in reports, or logged.</p>
+
+<h2>4. Data Use</h2>
+<p>Data accessed by the Tool is used solely for the purpose of performing internal financial reconciliation reports for AUSOMA's bursar office, Office of the Registrar, and Office of Academic Affairs. Data is not used for marketing, profiling, advertising, or any purpose other than AUSOMA's internal financial operations.</p>
+
+<h2>5. Data Sharing</h2>
+<p>The Tool does not share data with any party outside AUSOMA. Data exchange occurs only between AUSOMA and AUSOMA's existing contracted service providers (Intuit, Populi, Stripe, Microsoft) acting under their respective service agreements with AUSOMA.</p>
+
+<h2>6. Data Retention</h2>
+<p>The Tool retains processed data only on AUSOMA-controlled infrastructure for the period necessary to support AUSOMA's reconciliation workflow. Source data remains in the originating systems of record (QuickBooks Online, Populi, Stripe) under those providers' retention policies and AUSOMA's data-retention policies.</p>
+
+<h2>7. Security</h2>
+<p>API credentials are stored in environment variables on AUSOMA-controlled infrastructure with file-system permissions restricted to the operating user. Tokens are not transmitted to any party outside AUSOMA. The Tool operates with the principle of least privilege, requesting only read scopes from each provider.</p>
+
+<h2>8. Disconnection</h2>
+<p>An authorized AUSOMA staff member may disconnect the Tool from any of its data sources at any time. Disconnection revokes the Tool's access tokens. See the <a href="./disconnect.html">Disconnect</a> page for details.</p>
+
+<h2>9. Contact</h2>
+<p>Privacy questions or requests should be directed to AUSOMA's Office of the Registrar at
+<a href="mailto:jawad.shaikh@ausoma.org">jawad.shaikh@ausoma.org</a>.</p>
+
+<h2>10. Changes</h2>
+<p>This Privacy Policy may be updated from time to time to reflect changes in the Tool's data handling. The effective date at the top of this page indicates the date of the most recent revision.</p>
+
+<nav>
+  <a href="./index.html">&larr; Back to overview</a>
+  <a href="./eula.html">EULA</a>
+  <a href="./connect.html">Connect</a>
+  <a href="./disconnect.html">Disconnect</a>
+</nav>
+
+<footer>
+  Operated by: AUSOMA Office of the Registrar &middot;
+  Contact: <a href="mailto:jawad.shaikh@ausoma.org">jawad.shaikh@ausoma.org</a> &middot;
+  Last updated: 2026-05-19
+</footer>
+</body>
+</html>

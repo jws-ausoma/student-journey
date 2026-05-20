@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUSOMA Student Finance Reconciliation Tool</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         max-width: 720px; margin: 2rem auto; padding: 0 1.25rem; color: #1f2937;
+         line-height: 1.55; }
+  header { border-bottom: 2px solid #1e3a8a; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  h1 { color: #1e3a8a; font-size: 1.5rem; margin: 0 0 .25rem 0; }
+  .sub { color: #6b7280; font-size: .9rem; }
+  h2 { color: #1e3a8a; font-size: 1.15rem; margin-top: 1.75rem; }
+  nav { background: #f3f4f6; border-radius: 6px; padding: .75rem 1rem;
+        margin-top: 1.5rem; font-size: .9rem; }
+  nav a { color: #1e3a8a; text-decoration: none; margin-right: 1rem; }
+  nav a:hover { text-decoration: underline; }
+  footer { border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 2.5rem;
+           color: #6b7280; font-size: .8rem; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: .9em; }
+</style>
+</head>
+<body>
+<header>
+  <h1>AUSOMA Student Finance Reconciliation Tool</h1>
+  <div class="sub">Internal application — American University School of Medicine of Aruba</div>
+</header>
+
+<p>This application is an internal financial reconciliation tool operated by American University School of Medicine of Aruba (AUSOMA). It performs a daily three-way match across AUSOMA's enrollment records, QuickBooks Online invoices and payments, and Populi student-information-system invoices and payments, producing exception reports for AUSOMA's bursar office.</p>
+
+<h2>Scope &amp; access</h2>
+<p>The tool is operated by authorized AUSOMA staff only. It is not a multi-tenant product and is not offered to any party outside AUSOMA. There is no public registration; access is provisioned individually by AUSOMA's Office of the Registrar and Office of Academic Affairs.</p>
+
+<h2>What it connects to</h2>
+<p>The tool reads data via authenticated API connections from:</p>
+<ul>
+  <li>AUSOMA's QuickBooks Online company file (read-only OAuth 2.0 scope)</li>
+  <li>AUSOMA's Populi tenant (read-only API key)</li>
+  <li>AUSOMA's Stripe account (read-only restricted key)</li>
+</ul>
+<p>It does not write to any of these systems. Data is processed in memory or on AUSOMA-controlled infrastructure and is never transmitted to any party outside AUSOMA or its authorized service providers.</p>
+
+<nav>
+  <a href="./connect.html">Connect to QuickBooks</a>
+  <a href="./disconnect.html">Disconnect</a>
+  <a href="./eula.html">End-User License Agreement</a>
+  <a href="./privacy.html">Privacy Policy</a>
+</nav>
+
+<footer>
+  Operated by: AUSOMA Office of the Registrar &middot;
+  Contact: <a href="mailto:jawad.shaikh@ausoma.org">jawad.shaikh@ausoma.org</a> &middot;
+  Last updated: 2026-05-19
+</footer>
+</body>
+</html>
