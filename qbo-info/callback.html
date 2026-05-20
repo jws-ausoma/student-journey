@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickBooks OAuth Callback — AUSOMA Student Finance</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+         max-width: 760px; margin: 2rem auto; padding: 0 1.25rem; color: #1f2937;
+         line-height: 1.55; }
+  header { border-bottom: 2px solid #1e3a8a; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  h1 { color: #1e3a8a; font-size: 1.5rem; margin: 0 0 .25rem 0; }
+  .sub { color: #6b7280; font-size: .9rem; }
+  h2 { color: #1e3a8a; font-size: 1.1rem; margin-top: 1.75rem; }
+  nav { background: #f3f4f6; border-radius: 6px; padding: .75rem 1rem;
+        margin-top: 1.5rem; font-size: .9rem; }
+  nav a { color: #1e3a8a; text-decoration: none; margin-right: 1rem; }
+  nav a:hover { text-decoration: underline; }
+  footer { border-top: 1px solid #e5e7eb; padding-top: 1rem; margin-top: 2.5rem;
+           color: #6b7280; font-size: .8rem; }
+  .ok-banner { background: #ecfdf5; border-left: 4px solid #10b981;
+               padding: 1rem 1.25rem; border-radius: 4px; margin: 1.25rem 0; }
+  .err-banner { background: #fef2f2; border-left: 4px solid #ef4444;
+                padding: 1rem 1.25rem; border-radius: 4px; margin: 1.25rem 0; }
+  .field { margin: 1rem 0; }
+  .field label { display: block; font-weight: 600; color: #374151; margin-bottom: .35rem;
+                 font-size: .9rem; }
+  .row { display: flex; gap: .5rem; align-items: stretch; }
+  .row input { flex: 1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+               font-size: .9rem; padding: .55rem .75rem; border: 1px solid #d1d5db;
+               border-radius: 4px; background: #ffffff; color: #111827; }
+  .row button { padding: .55rem 1rem; background: #1e3a8a; color: #ffffff; border: 0;
+                border-radius: 4px; font-weight: 600; cursor: pointer; font-size: .9rem; }
+  .row button:hover { background: #1e40af; }
+  .row button.copied { background: #10b981; }
+  ol { padding-left: 1.5rem; }
+  ol li { margin-bottom: .5rem; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: .9em; }
+  .hint { color: #6b7280; font-size: .85rem; margin-top: .25rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>QuickBooks Online — Authorization Received</h1>
+  <div class="sub">AUSOMA Student Finance Reconciliation Tool &middot; OAuth 2.0 callback</div>
+</header>
+
+<div id="ok-section" style="display:none;">
+  <div class="ok-banner">
+    <strong>Authorization complete.</strong> Copy the values below back into the OAuth bootstrap script running in your terminal.
+  </div>
+
+  <div class="field">
+    <label for="code">Authorization Code</label>
+    <div class="row">
+      <input id="code" readonly value="" autocomplete="off">
+      <button data-copy="code" type="button">Copy</button>
+    </div>
+    <div class="hint">Single-use; expires in ~10 minutes. Paste this into the script first.</div>
+  </div>
+
+  <div class="field">
+    <label for="realmId">Realm ID (QuickBooks Company ID)</label>
+    <div class="row">
+      <input id="realmId" readonly value="" autocomplete="off">
+      <button data-copy="realmId" type="button">Copy</button>
+    </div>
+    <div class="hint">Identifies which QuickBooks company you authorized. Save to <code>QBO_REALM_ID</code> in <code>.env</code> if it isn't there already.</div>
+  </div>
+
+  <div class="field">
+    <label for="state">State</label>
+    <div class="row">
+      <input id="state" readonly value="" autocomplete="off">
+      <button data-copy="state" type="button">Copy</button>
+    </div>
+    <div class="hint">CSRF token. The bootstrap script will verify this matches the value it generated before exchanging the code for tokens.</div>
+  </div>
+
+  <h2>Next steps</h2>
+  <ol>
+    <li>Switch back to your Terminal where <code>oauth_bootstrap_qbo.py</code> is running.</li>
+    <li>When it prompts for the authorization code, paste the <strong>Authorization Code</strong> above.</li>
+    <li>When it prompts for the realm ID, paste the <strong>Realm ID</strong> above.</li>
+    <li>When it prompts for the state, paste the <strong>State</strong> above.</li>
+    <li>The script will exchange these for access &amp; refresh tokens and write them to <code>.env</code>. You can close this tab once it confirms success.</li>
+  </ol>
+</div>
+
+<div id="err-section" style="display:none;">
+  <div class="err-banner">
+    <strong>Authorization did not complete.</strong>
+    <div id="err-detail" style="margin-top:.5rem;"></div>
+  </div>
+  <p>Common causes:</p>
+  <ul>
+    <li>You clicked <em>Cancel</em> instead of <em>Authorize</em> on Intuit's consent screen.</li>
+    <li>The session expired before authorization completed.</li>
+    <li>The OAuth bootstrap script in the terminal was killed before redirect.</li>
+  </ul>
+  <p>To retry, switch back to your terminal and re-run <code>python3 student-finance/oauth_bootstrap_qbo.py</code>.</p>
+</div>
+
+<div id="empty-section" style="display:none;">
+  <p>This page is the OAuth 2.0 callback target for the AUSOMA Student Finance Reconciliation Tool's connection to QuickBooks Online. It is reached automatically by Intuit's servers after an authorized AUSOMA staff member approves the connection.</p>
+  <p>If you reached this page directly without going through the OAuth flow, there is nothing to do here. Return to the <a href="./index.html">overview page</a>.</p>
+</div>
+
+<nav>
+  <a href="./index.html">&larr; Back to overview</a>
+  <a href="./connect.html">Connect</a>
+  <a href="./disconnect.html">Disconnect</a>
+  <a href="./privacy.html">Privacy Policy</a>
+</nav>
+
+<footer>
+  Operated by: AUSOMA Office of the Registrar &middot;
+  Contact: <a href="mailto:jawad.shaikh@ausoma.org">jawad.shaikh@ausoma.org</a> &middot;
+  Last updated: 2026-05-19
+</footer>
+
+<script>
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const state = params.get('state');
+  const realmId = params.get('realmId');
+  const errParam = params.get('error');
+  const errDesc = params.get('error_description');
+
+  if (errParam) {
+    document.getElementById('err-section').style.display = 'block';
+    document.getElementById('err-detail').textContent =
+      errParam + (errDesc ? ' — ' + errDesc : '');
+    return;
+  }
+
+  if (code && realmId) {
+    document.getElementById('ok-section').style.display = 'block';
+    document.getElementById('code').value = code;
+    document.getElementById('realmId').value = realmId;
+    document.getElementById('state').value = state || '';
+
+    document.querySelectorAll('button[data-copy]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-copy');
+        const input = document.getElementById(id);
+        try {
+          await navigator.clipboard.writeText(input.value);
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = original;
+            btn.classList.remove('copied');
+          }, 1500);
+        } catch (e) {
+          input.select();
+          document.execCommand('copy');
+        }
+      });
+    });
+    return;
+  }
+
+  // Reached directly with no params
+  document.getElementById('empty-section').style.display = 'block';
+})();
+</script>
+</body>
+</html>
