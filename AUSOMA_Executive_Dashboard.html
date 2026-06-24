@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AUSOMA · Executive Dashboard</title>
+<link rel="manifest" href="manifest.json"/><meta name="theme-color" content="#0a3478"/><meta name="application-name" content="AUSOMA Student Journey"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="AUSOMA Journey"/><meta name="mobile-web-app-capable" content="yes"/><link rel="icon" type="image/svg+xml" href="icon.svg"/><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/><link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/><script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#1a2333; --muted:#5b6677; --border:#e3e6ec;
+  --brand:#0b3d91; --brand-2:#1d6fb8; --accent:#f0a500;
+  --st-PreMed:#cdd9f5;     --ink-PreMed:#102a5c;
+  --st-BasicSc:#a8d8ea;    --ink-BasicSc:#073447;
+  --st-PreClin:#ffe0a3;    --ink-PreClin:#5a3a00;
+  --st-Clinicals:#b6e3c1;  --ink-Clinicals:#114a2a;
+  --st-Exited:#f5b8b8;     --ink-Exited:#5a0e0e;
+  --st-Grad:#9b8bd9;       --ink-Grad:#1c0c4d;
+  --st-Meta:#e9eaee;       --ink-Meta:#3b3f4a;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:var(--bg); color:var(--ink);
+  font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+header.topbar { background:var(--brand); color:white; padding:12px 22px; display:flex; align-items:center; gap:18px; }
+header.topbar img { height:34px; }
+header.topbar h1 { margin:0; font-size:18px; font-weight:600; letter-spacing:.2px; }
+header.topbar .meta { margin-left:auto; font-size:12px; opacity:.85; }
+
+nav.tabs { background:#0a3478; padding:8px 22px 0; display:flex; gap:4px; border-bottom:3px solid var(--accent); align-items:flex-end; flex-wrap:wrap; }
+nav.tabs a { display:inline-block; color:#dde6f5; background:#15417f; text-decoration:none; padding:8px 18px 9px; font-size:13px; font-weight:600; border:1px solid #1c4a8d; border-bottom:none; border-radius:9px 9px 0 0; margin-bottom:-3px; line-height:1.2; transition:background .15s, color .15s; }
+nav.tabs a:hover { color:#fff; background:#1d4f99; }
+nav.tabs a.active { color:#0a3478; background:var(--accent); border-color:var(--accent); font-weight:700; padding-bottom:12px; box-shadow:0 -1px 4px rgba(0,0,0,.08); }
+
+.kpi { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:6px; padding:6px 22px 4px 22px; background:#fff; }
+.kpi .card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:5px 10px; box-shadow:0 1px 2px rgba(11,61,145,.06); transition:transform .1s, box-shadow .15s, background .15s; }
+.kpi .card.clickable { cursor:pointer; user-select:none; }
+.kpi .card.clickable:hover { transform:translateY(-1px); box-shadow:0 3px 8px rgba(11,61,145,.18); }
+.kpi .card.active { outline:3px solid var(--accent); outline-offset:1px; background:#fff7e6; }
+.kpi .card.active .label { color:var(--brand); }
+.kpi .card.stage-Enrolled { border-color:#7bb37b;             background:#fbfffb; }
+.kpi .card.stage-BasicSc  { border-color:var(--st-BasicSc);   background:#fbfdff; }
+.kpi .card.stage-PreClin  { border-color:#e6c87a;             background:#fffbf0; }
+.kpi .card.stage-Clinicals{ border-color:var(--st-Clinicals); background:#fbfffc; }
+.kpi .card.stage-Exited   { border-color:var(--st-Exited);    background:#fffbfb; }
+.kpi .card.stage-Grad     { border-color:var(--st-Grad);      background:#fdfbff; }
+.kpi .card .breakdown { display:flex; gap:10px; margin-top:2px; font-size:10.5px; color:var(--muted); line-height:1.2; flex-wrap:wrap; }
+.kpi .card .breakdown b { color:var(--ink); font-weight:700; }
+/* Sub-segments inside the breakdown row (e.g., Between · ASF · LOA on the
+   Clinical Rotations page) can be individually clickable. The .on state
+   highlights the segment whose filter is currently applied. */
+.kpi .card .breakdown .bd-seg { cursor:pointer; padding:1px 5px; border-radius:99px; transition:background .12s; }
+.kpi .card .breakdown .bd-seg:hover { background:rgba(11,61,145,.10); color:var(--ink); }
+.kpi .card .breakdown .bd-seg.on { background:var(--accent); color:#fff; }
+.kpi .card .breakdown .bd-seg.on b { color:#fff; }
+/* Basic Sciences card has five MD chips (MD1..MD5) which wrap or overflow on
+   narrower KPI columns. Tighten the gap and padding and shrink the font so
+   they all fit on a single line at normal column widths. */
+.kpi .card .breakdown.md-breakdown { gap:3px; font-size:10px; }
+.kpi .card .breakdown.md-breakdown .bd-seg { padding:1px 3px; white-space:nowrap; }
+.kpi .card .breakdown.md-breakdown .bd-seg b { margin-right:1px; }
+/* Show/hide sub-totals toggle. Default state (no body class) keeps chips
+   hidden — set in JS at page load so re-renders inherit the preference. */
+body.hide-subtotals .kpi .card .breakdown { display:none; }
+/* The toggle button sits at the right end of the "In view" row so it shares
+   visual real estate with the same-row sub-totals it controls. The row
+   wrapper takes over the kpi-visible's background/border so the row reads
+   as one continuous bar; .kpi-visible is made transparent inside it. */
+.kpi-visible-row { display:flex; align-items:stretch; background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+.kpi-visible-row .kpi-visible { flex:1; background:transparent; border-top:none; border-bottom:none; }
+.kpi-visible-row .subtotals-toggle { align-self:center; margin:0 14px 0 8px; flex-shrink:0; }
+.subtotals-toggle { font:11px inherit; padding:3px 11px; border:1px solid var(--brand); border-radius:99px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; line-height:1.4; white-space:nowrap; }
+.subtotals-toggle:hover { background:var(--brand-2); color:#fff; border-color:var(--brand-2); }
+.subtotals-toggle.on { background:var(--brand); color:#fff; }
+.kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1.1; }
+.kpi .value { font-size:18px; font-weight:700; margin-top:1px; color:var(--ink); line-height:1.1; }
+.kpi .sub { font-size:10.5px; color:var(--muted); line-height:1.2; }
+.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:4px 22px; font-size:12px; color:var(--ink); display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+.kpi-visible .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-size:10px; font-weight:700; margin-right:8px; }
+.kpi-visible .seg { white-space:nowrap; }
+.kpi-visible .seg b { color:var(--brand); font-weight:700; }
+.kpi-visible .seg .name { color:var(--muted); margin-right:4px; font-size:11px; }
+.kpi-visible.stage-PreMed b { color:#102a5c; }
+.kpi-visible.stage-BasicSc b { color:#073447; }
+
+.filters { display:flex; gap:8px 14px; flex-wrap:wrap; padding:10px 22px; background:#fff; border-bottom:1px solid var(--border); align-items:center; position:sticky; top:0; z-index:5; }
+.filters a.src-link { display:inline-flex; align-items:center; padding:5px 10px; border:1.5px solid #d4a000; border-radius:6px; background:#fff4c4; color:#5a4500; font-size:12px; font-weight:600; text-decoration:none; }
+.filters a.src-link:hover { background:#ffe689; color:#3d2f00; border-color:#b88800; }
+.filters label { font-size:12px; color:var(--muted); font-weight:600; }
+.filters select, .filters input[type=text] { font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; color:var(--ink); box-shadow:0 1px 2px rgba(11,61,145,.08); transition:border-color .15s, box-shadow .15s; }
+.filters select:hover, .filters input[type=text]:hover { border-color:var(--brand-2); }
+.filters select:focus, .filters input[type=text]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(240,165,0,.25); }
+.filters button.clear { font:12px inherit; padding:6px 12px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; }
+.filters button.clear:hover { background:var(--brand); color:white; }
+.filters .count { margin-left:auto; font-size:12px; color:var(--muted); }
+.filters .note { font-size:11px; color:var(--muted); font-style:italic; }
+.filters .group-box { display:inline-flex; gap:6px; align-items:center; padding:4px 10px 4px 8px; border:1px dashed var(--brand); border-radius:8px; background:#f6f9ff; }
+.filters .group-box .group-lbl { font-size:11px; color:var(--brand); text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-right:4px; }
+.filters .group-box label { font-weight:500; }
+
+.layout { display:grid; grid-template-columns: minmax(420px, 1.1fr) 2fr; gap:14px; padding:14px 22px; }
+.layout.stacked { grid-template-columns: 1fr; }
+@media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } }
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+
+.roster { max-height: calc(100vh - 200px); overflow:auto; }
+/* Compact roster (Student Roster + Clinical Rotations pages): keep the list
+   short so it shows ~4 students at a time before scrolling, leaving room for
+   the detail panel below it. The header is sticky, so the visible scroll area
+   is height minus the thead. */
+.roster.compact { max-height: 320px; min-height:240px; overflow:auto; }
+.roster table { width:100%; border-collapse:collapse; }
+/* Sticky thead — locks to the top of the scroll container so column labels
+   stay visible while scrolling. Default offset is 0 (no tab strip above the
+   table). On pages that have a .roster-tabs strip above the table, push the
+   thead down so it sits underneath the tabs instead of being hidden by them. */
+.roster thead th { position:sticky; top:0; background:#f0f3f8; color:var(--ink); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:left; border-bottom:2px solid var(--brand); z-index:2; cursor:pointer; user-select:none; white-space:nowrap; }
+.roster thead tr:nth-child(2) th { top:32px; background:#e6ebf3; border-top:1px solid var(--border); }
+.roster:has(.roster-tabs) thead th { top:36px; }
+.roster:has(.roster-tabs) thead tr:nth-child(2) th { top:68px; }
+.roster thead th.group-hdr { background:var(--brand); color:white; text-align:center; font-weight:700; cursor:default; border-bottom:1px solid white; letter-spacing:.06em; }
+.roster thead th.group-hdr:hover { background:var(--brand); }
+.roster thead th.group-hdr.prev { background:#6b7a93; }
+.roster thead th.group-hdr.curr { background:var(--brand); }
+.roster thead th.group-hdr.next { background:#3d6bb3; }
+.roster .rot-cell { font-size:11px; line-height:1.25; }
+.roster .rot-cell .lab { font-weight:600; }
+.roster .rot-cell.dim { color:var(--muted); }
+.roster .rot-cell .date { color:var(--muted); font-size:10.5px; }
+.roster .rot-cell .loc { color:var(--muted); font-size:10.5px; }
+/* Bold green "P" — preceptor billing has been paid for this rotation. */
+.roster .rot-cell .paid-p { display:inline-block; background:#0f7a2e; color:white; font-weight:800; font-size:10px; line-height:1; padding:2px 5px; border-radius:3px; margin-left:6px; vertical-align:1px; letter-spacing:.05em; }
+.roster .rot-cell .paid-p[title]:hover { cursor:help; }
+.roster .group-divider { border-left:2px solid var(--brand); }
+/* Highlight current rotation when it ends in <=30 days */
+.roster .rot-cell.ending-soon { background:#fff4d6; }
+.roster .rot-cell.ending-soon .badge-soon { display:inline-block; background:#e08a00; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
+.roster .rot-cell.ending-very-soon { background:#ffe1dd; }
+.roster .rot-cell.ending-very-soon .badge-soon { background:#c0382c; }
+/* Stuck student: previous rotation ended >30 days ago AND no current AND no scheduled next */
+.roster .rot-cell.stuck { background:#fbe1dd; color:#7a1414; }
+.roster .rot-cell.stuck.dim { color:#7a1414; }
+.roster .rot-cell.stuck .badge-stuck { display:inline-block; background:#c0382c; color:white; font-size:9px; font-weight:700; padding:1px 5px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
+/* Ready for graduation: all 48 core weeks AND all 24 elective weeks complete (72/72) AND Step 2 passed */
+.roster .rot-cell.ready-grad { background:#dff5e0; color:#0f5128; }
+.roster .rot-cell.ready-grad.dim { color:#0f5128; }
+.roster .rot-cell.ready-grad .badge-ready { display:inline-block; background:#0f7a2e; color:white; font-size:9px; font-weight:700; padding:1px 6px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
+/* Graduation pending Step 2: all 72 weeks done but Step 2 not yet passed. Lighter green. */
+.roster .rot-cell.pending-step2 { background:#eff8f0; color:#345a3a; }
+.roster .rot-cell.pending-step2.dim { color:#345a3a; }
+.roster .rot-cell.pending-step2 .badge-pending { display:inline-block; background:#5a8a5f; color:white; font-size:9px; font-weight:700; padding:1px 6px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.03em; text-transform:uppercase; }
+.roster-tabs { display:flex; gap:0; padding:8px 12px 0 12px; background:#f0f3f8; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:3; }
+.roster-tabs button { background:transparent; border:1px solid transparent; border-bottom:none; padding:7px 16px; font:600 12px/1 system-ui, sans-serif; color:var(--muted); cursor:pointer; border-radius:6px 6px 0 0; letter-spacing:.04em; text-transform:uppercase; }
+.roster-tabs button:hover { color:var(--ink); }
+.roster-tabs button.active { background:white; color:var(--brand); border-color:var(--border); border-bottom-color:white; margin-bottom:-1px; box-shadow:0 -1px 0 var(--brand) inset; }
+.roster-tabs .spacer { flex:1; }
+.roster-tabs .hint { font:500 11px/1.6 system-ui, sans-serif; color:var(--muted); padding:7px 6px; }
+.roster thead th .sortarr { color:var(--muted); margin-left:4px; font-size:10px; }
+.roster thead th.sorted .sortarr { color:var(--accent); }
+.roster tbody tr { cursor:pointer; border-bottom:1px solid #e1e6ee; }
+/* Zebra striping — subtle alternating background so adjacent rows are easy to
+   tell apart while scanning. Hover and selected states override. */
+.roster tbody tr:nth-child(even) { background:#f5f7fb; }
+.roster tbody tr:hover { background:#e8eef8 !important; }
+.roster tbody tr.selected { background:#dbe7f9 !important; box-shadow: inset 4px 0 0 var(--brand), inset -1px 0 0 var(--brand); }
+.roster tbody tr.selected:hover { background:#cfdef5 !important; }
+.roster tbody tr.selected td .name { color:var(--brand); }
+/* ASF student row — soft amber tint so the user can spot ASF students at a
+   glance. Even-row striping and selected state still take precedence. */
+.roster tbody tr.asf-row { background:#fff4d6; }
+.roster tbody tr.asf-row:nth-child(even) { background:#fbecc4; }
+.roster tbody tr.asf-row:hover { background:#ffe9b5 !important; }
+.roster tbody tr.asf-row .asf-badge { display:inline-block; background:#d4a000; color:#fff; font-size:9px; font-weight:700; padding:1px 6px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.04em; text-transform:uppercase; }
+/* LOA student row — soft lavender tint to differentiate from ASF. */
+.roster tbody tr.loa-row { background:#efe7fb; }
+.roster tbody tr.loa-row:nth-child(even) { background:#e2d6f5; }
+.roster tbody tr.loa-row:hover { background:#dccaef !important; }
+.roster tbody tr.loa-row .loa-badge { display:inline-block; background:#6b3fa3; color:#fff; font-size:9px; font-weight:700; padding:1px 6px; border-radius:99px; margin-left:5px; vertical-align:1px; letter-spacing:.04em; text-transform:uppercase; }
+.roster td { padding:8px 10px; vertical-align:top; }
+.roster .name { font-weight:600; }
+.roster .meta { color:var(--muted); font-size:11px; }
+.roster .mini-lane { display:flex; gap:1px; margin-top:4px; }
+.roster .mini-lane .cell { width:6px; height:14px; border-radius:1px; background:#eef0f4; }
+
+.status-pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; white-space:nowrap; }
+.status-Enrolled { background:#dcecdc; color:#0f5128; }
+.status-Grad { background:#e7e0fb; color:#36148a; }
+.status-W-Dism, .status-WDism { background:#f7d8d8; color:#7a1414; }
+.status-empty { background:#eee; color:#666; }
+.type-pill { font-size:11px; padding:2px 7px; border-radius:4px; font-weight:600; }
+.type-New { background:#e0eaff; color:#102a5c; }
+.type-XFR { background:#fde4c5; color:#5a3a00; }
+/* Program Level pills — shades of blue, lighter for PM, deeper for MD,
+   distinct hues for Pre-Clinical and Clinical aggregate levels. */
+.prog-pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; font-weight:600; white-space:nowrap; }
+.prog-pm1 { background:#eaf1fb; color:#102a5c; }
+.prog-pm2 { background:#d8e5f6; color:#102a5c; }
+.prog-pm3 { background:#c4d7f0; color:#102a5c; }
+.prog-pm4 { background:#b0c8eb; color:#0e2454; }
+.prog-md1 { background:#9bbae6; color:#0c1f4a; }
+.prog-md2 { background:#7da7df; color:#0c1f4a; }
+.prog-md3 { background:#5e91d6; color:white; }
+.prog-md4 { background:#3f7bcd; color:white; }
+.prog-md5 { background:#1656b8; color:white; }
+.prog-preclin { background:#dce7f8; color:#0a3478; }
+.prog-clinical { background:#0a3478; color:white; }
+.prog-none { background:#eee; color:#666; }
+
+.detail { padding:18px 20px; max-height: calc(100vh - 280px); overflow:auto; }
+.layout.stacked .detail { max-height: none; overflow: visible; }
+.detail h2 { margin:0 0 4px 0; font-size:20px; }
+.detail .sid { color:var(--muted); font-size:12px; }
+.detail .group { margin-top:18px; border:1.5px solid var(--brand); border-radius:8px; padding:14px 16px; background:#fbfcfe; box-shadow:0 1px 3px rgba(11,61,145,.06); }
+.detail .group h3 { margin:0 0 10px 0; font-size:12px; color:var(--brand); text-transform:uppercase; letter-spacing:.07em; font-weight:700; border-bottom:2px solid var(--brand); padding-bottom:6px; }
+.detail .kvgrid { display:grid; grid-template-columns: 200px 1fr; row-gap:6px; column-gap:14px; }
+.detail .kvgrid .k { color:var(--muted); }
+.detail .group .crosslink { float:right; font-size:11px; font-weight:500; }
+.detail .group .crosslink a { color:var(--brand-2); text-decoration:none; }
+.detail .group .crosslink a:hover { text-decoration:underline; }
+
+.lastn { display:flex; gap:8px; flex-wrap:wrap; }
+.lastn .sembox { flex:1 1 220px; min-width:200px; padding:10px 12px; border-radius:8px; border:1px solid var(--border); }
+.lastn .sembox .lab { font-size:11px; color:var(--muted); margin-bottom:4px; }
+
+.timeline { display:grid; gap:3px; }
+.timeline .col { display:flex; flex-direction:column; align-items:stretch; }
+.timeline .colhdr { font-size:9px; color:var(--muted); text-align:center; padding:2px 0; border-bottom:1px solid var(--border); margin-bottom:2px; line-height:1.1; height:30px; display:flex; align-items:flex-end; justify-content:center; }
+.timeline .cell { height:54px; border-radius:4px; padding:3px 4px; display:flex; flex-direction:column; gap:2px; overflow:hidden; font-size:9.5px; }
+.timeline .cell.empty { background:#f4f5f8; }
+.timeline .cell.PreMed   { background:var(--st-PreMed);   color:var(--ink-PreMed); }
+.timeline .cell.BasicSc  { background:var(--st-BasicSc);  color:var(--ink-BasicSc); }
+.timeline .cell.PreClin  { background:var(--st-PreClin);  color:var(--ink-PreClin); }
+.timeline .cell.Clinicals{ background:var(--st-Clinicals);color:var(--ink-Clinicals); }
+.timeline .cell.Exited   { background:var(--st-Exited);   color:var(--ink-Exited); }
+.timeline .cell.Grad     { background:var(--st-Grad);     color:white; }
+.timeline .cell.Meta     { background:var(--st-Meta);     color:var(--ink-Meta); }
+.timeline .cell .chip { background:rgba(255,255,255,.55); padding:1px 4px; border-radius:3px; }
+
+.legend-row { display:flex; gap:10px; flex-wrap:wrap; padding:8px 22px; background:#fbfcfe; border-top:1px solid var(--border); font-size:11px; }
+.legend-row .swatch { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:middle; margin-right:4px; }
+
+/* Generic multi-pick dropdown panel (used by Program Level filter). The
+   trigger button shows a summary; clicking opens a checkbox list. */
+.multi-pick { position:relative; display:inline-block; }
+.multi-pick .trigger { display:inline-flex; align-items:center; gap:6px; font:13px inherit; padding:6px 10px; border:1.5px solid var(--brand); border-radius:6px; background:white; color:var(--ink); cursor:pointer; min-width:160px; }
+.multi-pick .trigger:hover { background:#f3f6fb; }
+.multi-pick .trigger .badge { background:var(--brand); color:white; font-size:11px; font-weight:700; padding:1px 7px; border-radius:99px; display:none; }
+.multi-pick .trigger.has-selection .badge { display:inline-block; }
+.multi-pick .panel { position:absolute; top:calc(100% + 4px); left:0; background:white; border:1.5px solid var(--brand); border-radius:6px; min-width:220px; max-width:320px; display:none; flex-direction:column; box-shadow:0 6px 20px rgba(11,52,120,.18); z-index:10; padding:8px; gap:8px; }
+.multi-pick.open .panel { display:flex; }
+.multi-pick .panel .list { display:grid; grid-template-columns:1fr 1fr; gap:2px 8px; }
+.multi-pick .panel .list label { display:flex; align-items:center; gap:6px; padding:3px 4px; font-size:12px; cursor:pointer; border-radius:3px; color:var(--ink); font-weight:400; white-space:nowrap; }
+.multi-pick .panel .list label:hover { background:#f3f6fb; }
+.multi-pick .panel .quick { display:flex; gap:6px; border-top:1px solid var(--border); padding-top:6px; flex-wrap:wrap; }
+.multi-pick .panel .quick button { background:none; border:1px solid var(--border); color:var(--brand); font-weight:600; cursor:pointer; font:11px inherit; padding:3px 8px; border-radius:4px; }
+.multi-pick .panel .quick button:hover { background:#f3f6fb; border-color:var(--brand); }
+
+.note { white-space:pre-wrap; padding:10px; background:#fff8e6; border:1px solid #f0d896; border-radius:6px; font-size:13px; }
+.empty-detail { color:var(--muted); padding:40px; text-align:center; }
+
+.cbse-band { display:inline-block; padding:2px 7px; border-radius:4px; font-weight:600; font-size:12px; }
+.cbse-band.pass { background:#cfeacf; color:#0f5128; }
+.cbse-band.near { background:#fff0c2; color:#7a5a00; }
+.cbse-band.warn { background:#ffd3a8; color:#7a3500; }
+.cbse-band.fail { background:#f7c1c1; color:#7a1414; }
+
+.step-pill { display:inline-block; padding:2px 8px; border-radius:99px; font-weight:600; font-size:11px; }
+.step-passed { background:#dcecdc; color:#0f5128; }
+.step-fail { background:#f7d8d8; color:#7a1414; }
+.step-none { background:#eee; color:#666; }
+
+.history-list { font-size:13px; }
+.history-list .ev { padding:4px 8px; margin:2px 0; border-radius:4px; display:flex; justify-content:space-between; align-items:center; }
+.history-list .ev.pass { background:#dcecdc; color:#0f5128; }
+.history-list .ev.fail { background:#f7d8d8; color:#7a1414; }
+.history-list .ev .tag { font-weight:600; }
+
+/* Populi cross-link styles
+ * Three placements:
+ *   .populi-sid-link  — wraps the Student ID number in roster rows + detail
+ *                       header so the ID itself is clickable.
+ *   .populi-pill      — tiny "P↗" badge next to the student name in roster
+ *                       rows, for quick deep-link access.
+ *   .populi-btn       — prominent button in the detail panel.
+ * If a student has no Populi ID match, .populi-sid-link renders as the bare
+ * SID (no link) and .populi-pill / .populi-btn aren't emitted.
+ */
+.populi-sid-link { color:inherit; text-decoration:none; border-bottom:1px dotted rgba(11,61,145,.35); }
+.populi-sid-link:hover { color:var(--brand); border-bottom-color:var(--brand); }
+.populi-pill { display:inline-flex; align-items:center; gap:2px; margin-left:6px; padding:0 5px; border:1px solid #b88800; border-radius:99px; background:#fff4c4; color:#5a4500; font-size:9.5px; font-weight:700; letter-spacing:.03em; text-decoration:none; line-height:1.55; vertical-align:1px; }
+.populi-pill:hover { background:#ffe689; color:#3d2f00; border-color:#7a5a00; }
+.populi-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1.5px solid #d4a000; border-radius:6px; background:#fff4c4; color:#5a4500; font-size:12px; font-weight:600; text-decoration:none; margin-left:10px; vertical-align:middle; }
+.populi-btn:hover { background:#ffe689; color:#3d2f00; border-color:#b88800; }
+.populi-btn svg { vertical-align:-2px; }
+
+@media print {
+  .topbar .meta, .filters, .roster, nav.tabs { display:none; }
+  .layout { grid-template-columns: 1fr; padding:0; }
+  .panel { border:none; }
+  .detail { max-height:none; }
+}
+
+/* Legend / Tags help modal */
+.legend-btn { font:12px inherit; padding:5px 10px; border:1.5px solid var(--brand); border-radius:6px; background:#fff; color:var(--brand); cursor:pointer; font-weight:700; }
+.legend-btn:hover { background:var(--brand); color:white; }
+.legend-modal-bg { position:fixed; inset:0; background:rgba(11,35,51,.42); display:none; align-items:flex-start; justify-content:center; z-index:200; padding:40px 20px; overflow-y:auto; }
+.legend-modal-bg.open { display:flex; }
+.legend-modal { background:white; border-radius:12px; max-width:920px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(11,35,51,.3); }
+.legend-modal header { padding:16px 22px; border-bottom:2px solid var(--brand); display:flex; align-items:center; gap:14px; position:sticky; top:0; background:white; z-index:1; }
+.legend-modal header h2 { margin:0; color:var(--brand); font-size:18px; flex:1; }
+.legend-modal header .close { background:none; border:none; font-size:24px; cursor:pointer; color:var(--muted); padding:4px 10px; border-radius:6px; }
+.legend-modal header .close:hover { background:#f0f3f8; color:var(--ink); }
+.legend-modal .body { padding:14px 22px 22px 22px; }
+.legend-modal .intro { color:var(--muted); font-size:13px; margin-bottom:14px; }
+.legend-stage { margin-top:14px; }
+.legend-stage h3 { margin:0 0 8px 0; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:6px 10px; border-radius:6px; }
+.legend-stage.PreMed h3   { background:var(--st-PreMed);    color:var(--ink-PreMed); }
+.legend-stage.BasicSc h3  { background:var(--st-BasicSc);   color:var(--ink-BasicSc); }
+.legend-stage.PreClin h3  { background:var(--st-PreClin);   color:var(--ink-PreClin); }
+.legend-stage.Clinicals h3{ background:var(--st-Clinicals); color:var(--ink-Clinicals); }
+.legend-stage.Exited h3   { background:var(--st-Exited);    color:var(--ink-Exited); }
+.legend-stage.Grad h3     { background:var(--st-Grad);      color:white; }
+.legend-stage.Meta h3     { background:var(--st-Meta);      color:var(--ink-Meta); }
+.legend-stage table { width:100%; border-collapse:collapse; }
+.legend-stage td { padding:5px 8px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:top; }
+.legend-stage td.tag { width:120px; }
+.legend-stage td.tag .pill { display:inline-block; font-weight:700; padding:2px 8px; border-radius:4px; font-size:12px; border:1px solid; }
+.legend-stage.PreMed   td.tag .pill { background:var(--st-PreMed);    color:var(--ink-PreMed);    border-color:#9ab1ea; }
+.legend-stage.BasicSc  td.tag .pill { background:var(--st-BasicSc);   color:var(--ink-BasicSc);   border-color:#7bbed4; }
+.legend-stage.PreClin  td.tag .pill { background:var(--st-PreClin);   color:var(--ink-PreClin);   border-color:#e6c87a; }
+.legend-stage.Clinicals td.tag .pill{ background:var(--st-Clinicals); color:var(--ink-Clinicals); border-color:#7bb37b; }
+.legend-stage.Exited   td.tag .pill { background:var(--st-Exited);    color:var(--ink-Exited);    border-color:#d68888; }
+.legend-stage.Grad     td.tag .pill { background:var(--st-Grad);      color:white;                border-color:#7765c2; }
+.legend-stage.Meta     td.tag .pill { background:var(--st-Meta);      color:var(--ink-Meta);      border-color:#c5c8d2; }
+</style>
+</head><body>
+<header class="topbar">
+  
+  <h1>AUSOMA Student Journey</h1>
+  <div class="meta">Last Updated 2026-06-24 15:11 AST · Term Summer 2026</div>
+</header>
+<nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html" class="active">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
+
+<div class="legend-modal-bg" id="legend-modal-bg" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="legend-modal">
+    <header>
+      <h2>Tag Legend</h2>
+      <button class="close" onclick="document.getElementById('legend-modal-bg').classList.remove('open')" aria-label="Close">×</button>
+    </header>
+    <div class="body">
+      <div class="intro">Tags are short codes used in the StudentJourney semester cells to mark milestones, leaves, rotations, and exits. The dashboard groups tags into stages (PreMed → Basic Sciences → Pre-Clinical → Clinicals → Exited / Graduated) which drive the color coding throughout. Click outside this dialog or the × to close.</div>
+      <div class="legend-stage PreMed"><h3>PreMed</h3><table>
+<tr><td class="tag"><span class="pill">PM1</span></td><td>PreMed Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">PM2</span></td><td>PreMed Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">PM3</span></td><td>PreMed Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">PM4</span></td><td>PreMed Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">StartPM</span></td><td>Started PreMed (cohort entry)</td></tr>
+</table></div>
+<div class="legend-stage BasicSc"><h3>Basic Sciences (MD1–MD5)</h3><table>
+<tr><td class="tag"><span class="pill">StartMD</span></td><td>Semester student started with the institution</td></tr>
+<tr><td class="tag"><span class="pill">MD1</span></td><td>Basic Sciences Semester 1</td></tr>
+<tr><td class="tag"><span class="pill">MD2</span></td><td>Basic Sciences Semester 2</td></tr>
+<tr><td class="tag"><span class="pill">MD3</span></td><td>Basic Sciences Semester 3</td></tr>
+<tr><td class="tag"><span class="pill">MD4</span></td><td>Basic Sciences Semester 4</td></tr>
+<tr><td class="tag"><span class="pill">MD5</span></td><td>Basic Sciences Semester 5 (final pre-clinical)</td></tr>
+<tr><td class="tag"><span class="pill">MD</span></td><td>Generic MD-phase shorthand</td></tr>
+<tr><td class="tag"><span class="pill">New</span></td><td>New Student</td></tr>
+<tr><td class="tag"><span class="pill">XFR</span></td><td>Transfer Student</td></tr>
+<tr><td class="tag"><span class="pill">Deferred</span></td><td>Deferred admission</td></tr>
+</table></div>
+<div class="legend-stage PreClin"><h3>Pre-Clinical (post-MD5 / pre-clinical placement)</h3><table>
+<tr><td class="tag"><span class="pill">LOA</span></td><td>Leave of Absence — billable</td></tr>
+<tr><td class="tag"><span class="pill">LOA-F</span></td><td>First Leave of Absence — non-billable (now relabeled as ST)</td></tr>
+<tr><td class="tag"><span class="pill">LOA-M</span></td><td>Medical Leave of Absence</td></tr>
+<tr><td class="tag"><span class="pill">ASF</span></td><td>Academic Standing Fee — student paying to keep enrollment active</td></tr>
+<tr><td class="tag"><span class="pill">IBST</span></td><td>Independent Basics Study Time — first 4 months after first MD5, non-billable (formerly IST)</td></tr>
+<tr><td class="tag"><span class="pill">ST</span></td><td>Study Time (formerly LOA-F)</td></tr>
+<tr><td class="tag"><span class="pill">S1P</span></td><td>USMLE Step 1 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S1P2</span></td><td>USMLE Step 1 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F</span></td><td>USMLE Step 1 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S1F2</span></td><td>USMLE Step 1 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S1F3</span></td><td>USMLE Step 1 Failed (3rd attempt)</td></tr>
+</table></div>
+<div class="legend-stage Clinicals"><h3>Clinicals (cores, electives, Step 2, Match)</h3><table>
+<tr><td class="tag"><span class="pill">ICST</span></td><td>Independent Clinicals Study Time — non-billable gap between clinical blocks</td></tr>
+<tr><td class="tag"><span class="pill">CC</span></td><td>Clinical Core (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CC1</span></td><td>Clinical Core block 1</td></tr>
+<tr><td class="tag"><span class="pill">CC2</span></td><td>Clinical Core block 2</td></tr>
+<tr><td class="tag"><span class="pill">CC3</span></td><td>Clinical Core block 3</td></tr>
+<tr><td class="tag"><span class="pill">CC4</span></td><td>Clinical Core block 4</td></tr>
+<tr><td class="tag"><span class="pill">CC5</span></td><td>Clinical Core block 5</td></tr>
+<tr><td class="tag"><span class="pill">CC6</span></td><td>Clinical Core block 6</td></tr>
+<tr><td class="tag"><span class="pill">CC7</span></td><td>Clinical Core block 7</td></tr>
+<tr><td class="tag"><span class="pill">CC8</span></td><td>Clinical Core block 8</td></tr>
+<tr><td class="tag"><span class="pill">CC9</span></td><td>Clinical Core block 9</td></tr>
+<tr><td class="tag"><span class="pill">CC10</span></td><td>Clinical Core block 10</td></tr>
+<tr><td class="tag"><span class="pill">CC11</span></td><td>Clinical Core block 11</td></tr>
+<tr><td class="tag"><span class="pill">CC12</span></td><td>Clinical Core block 12</td></tr>
+<tr><td class="tag"><span class="pill">CIM</span></td><td>Internal Medicine Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CSU</span></td><td>Surgery Clerkship (12 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CFM</span></td><td>Family Medicine Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">COB</span></td><td>OBGYN Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPE</span></td><td>Pediatrics Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CPS</span></td><td>Psychiatry Clerkship (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE</span></td><td>Clinical Elective (generic)</td></tr>
+<tr><td class="tag"><span class="pill">CE4</span></td><td>Clinical Elective (4 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE6</span></td><td>Clinical Elective (6 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE8</span></td><td>Clinical Elective (8 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">CE10</span></td><td>Clinical Elective (10 weeks)</td></tr>
+<tr><td class="tag"><span class="pill">S2P</span></td><td>USMLE Step 2 Passed</td></tr>
+<tr><td class="tag"><span class="pill">S2P2</span></td><td>USMLE Step 2 Passed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2P3</span></td><td>USMLE Step 2 Passed (3rd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F</span></td><td>USMLE Step 2 Failed</td></tr>
+<tr><td class="tag"><span class="pill">S2F1</span></td><td>USMLE Step 2 Failed (1st attempt)</td></tr>
+<tr><td class="tag"><span class="pill">S2F2</span></td><td>USMLE Step 2 Failed (2nd attempt)</td></tr>
+<tr><td class="tag"><span class="pill">ApplMatch</span></td><td>Applied for Match</td></tr>
+<tr><td class="tag"><span class="pill">Matched</span></td><td>Matched into residency</td></tr>
+<tr><td class="tag"><span class="pill">NotMatched</span></td><td>Applied but did not Match in applied year</td></tr>
+</table></div>
+<div class="legend-stage Exited"><h3>Exited</h3><table>
+<tr><td class="tag"><span class="pill">W-Dism</span></td><td>Withdrawn / Dismissed (generic)</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-T</span></td><td>Withdrawn — Transferred Out</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-P</span></td><td>Withdrawn — Personal Reasons</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-F</span></td><td>Withdrawn — Financial</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-A</span></td><td>Dismissed Academically</td></tr>
+<tr><td class="tag"><span class="pill">W-Dism-H</span></td><td>Withdrawn — Health</td></tr>
+</table></div>
+<div class="legend-stage Grad"><h3>Graduated</h3><table>
+<tr><td class="tag"><span class="pill">Grad</span></td><td>Semester student graduated</td></tr>
+</table></div>
+<div class="legend-stage Meta"><h3>Milestone tags (overlays)</h3><table>
+<tr><td class="tag"><span class="pill">TargetGrd</span></td><td>Anticipated graduation semester</td></tr>
+<tr><td class="tag"><span class="pill">FW</span></td><td>Fee Waiver</td></tr>
+<tr><td class="tag"><span class="pill">ReAdmit</span></td><td>Readmitted after withdrawal</td></tr>
+</table></div>
+    </div>
+  </div>
+</div>
+
+<style>
+.exec-wrap { max-width:1280px; margin:0 auto; padding:18px 22px 60px; }
+.exec-h { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin:6px 0 14px; }
+.exec-h h2 { margin:0; color:var(--brand); font-size:22px; font-weight:700; letter-spacing:.2px; }
+.exec-h .sub { color:var(--muted); font-size:13px; margin-top:3px; }
+.exec-section { margin:26px 0 0; }
+.exec-section > h3 { font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--brand); margin:0 0 12px; padding-bottom:7px; border-bottom:2px solid var(--accent); }
+.exec-section > h3 .hint { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:12px; margin-left:8px; }
+
+/* Snapshot cards */
+.snap-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+.snap-card { background:var(--panel); border:1px solid var(--border); border-radius:11px; padding:13px 15px; }
+.snap-card .lab { color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; }
+.snap-card .val { font-size:30px; font-weight:800; color:var(--brand); margin:3px 0 1px; line-height:1; }
+.snap-card .meta { font-size:11.5px; color:var(--muted); }
+.snap-card .chg { font-size:12px; font-weight:700; margin-top:5px; }
+.chg.up { color:#16a34a; } .chg.down { color:#dc2626; } .chg.flat { color:var(--muted); }
+
+/* Funnel */
+.funnel { display:flex; flex-direction:column; gap:7px; margin-top:4px; }
+.frow { display:flex; align-items:center; gap:11px; }
+.flab { width:160px; font-size:12.5px; font-weight:600; }
+.fbar { flex:1; background:#eef2f7; border-radius:7px; height:30px; position:relative; overflow:hidden; }
+.fbar > .fill { position:absolute; inset:0 auto 0 0; border-radius:7px; background:linear-gradient(90deg,var(--brand-2),var(--brand)); display:flex; align-items:center; padding-left:11px; color:#fff; font-weight:800; font-size:12.5px; }
+.fcount { width:54px; text-align:right; font-weight:800; color:var(--brand); }
+
+/* Period toggle */
+.period-bar { display:inline-flex; background:#eef2f7; border:1px solid var(--border); border-radius:9px; padding:3px; gap:3px; }
+.period-bar button { border:0; background:transparent; padding:6px 13px; font-size:12.5px; font-weight:700; color:var(--muted); border-radius:7px; cursor:pointer; }
+.period-bar button.active { background:var(--brand); color:#fff; box-shadow:0 1px 3px rgba(0,0,0,.18); }
+.period-note { font-size:11.5px; color:var(--muted); margin-top:8px; }
+
+/* Trend cards */
+.trend-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:13px; }
+.tcard { background:var(--panel); border:1px solid var(--border); border-left:5px solid var(--border); border-radius:11px; padding:14px 16px; }
+.tcard.up { border-left-color:#16a34a; } .tcard.down { border-left-color:#dc2626; } .tcard.flat { border-left-color:#9aa3af; }
+.tcard .th { display:flex; align-items:center; gap:9px; }
+.tcard .arrow { font-size:19px; font-weight:800; line-height:1; }
+.tcard.up .arrow { color:#16a34a; } .tcard.down .arrow { color:#dc2626; } .tcard.flat .arrow { color:#9aa3af; }
+.tcard .tt { font-size:14.5px; font-weight:700; color:var(--ink); }
+.tcard .summ { font-size:12.5px; color:var(--muted); margin:7px 0 9px; }
+.tcard .rows { display:flex; flex-direction:column; gap:5px; }
+.tmetric { display:flex; align-items:center; justify-content:space-between; font-size:12.5px; border-top:1px dashed var(--border); padding-top:5px; }
+.tmetric:first-child { border-top:0; padding-top:0; }
+.tmetric .mn { color:var(--ink); }
+.tmetric .mv { font-variant-numeric:tabular-nums; font-weight:600; }
+.tmetric .d { font-weight:800; margin-left:7px; }
+.d.up { color:#16a34a; } .d.down { color:#dc2626; } .d.flat { color:var(--muted); }
+
+/* KPI scorecard */
+.kpi-table { width:100%; border-collapse:collapse; font-size:13px; background:var(--panel); border:1px solid var(--border); border-radius:11px; overflow:hidden; }
+.kpi-table th { background:#f3f6fb; color:var(--muted); text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; padding:9px 12px; }
+.kpi-table td { padding:10px 12px; border-top:1px solid var(--border); vertical-align:top; }
+.kpi-table td.k { font-weight:700; color:var(--ink); width:21%; }
+.kpi-table td.tgt { color:var(--muted); width:17%; }
+.kpi-table td.cur { width:30%; }
+.spill { display:inline-block; padding:2px 9px; border-radius:11px; font-size:11px; font-weight:700; white-space:nowrap; }
+.spill.good { background:#dcfce7; color:#065f46; }
+.spill.warn { background:#fef3c7; color:#92400e; }
+.spill.risk { background:#fee2e2; color:#991b1b; }
+.spill.info { background:#e0edff; color:#0b3d91; }
+.exec-foot { color:var(--muted); font-size:11px; margin-top:22px; border-top:1px solid var(--border); padding-top:10px; }
+@media print {
+  nav.tabs, .period-note { display:none; }
+  .tcard, .snap-card, .kpi-table { break-inside:avoid; }
+}
+@media (max-width:1080px){ .snap-grid{grid-template-columns:repeat(3,1fr);} .trend-grid{grid-template-columns:1fr;} }
+</style>
+<div class="exec-wrap">
+  <div class="exec-h">
+    <div>
+      <h2>Executive Dashboard</h2>
+      <div class="sub" id="exec-asof">Board-facing snapshot · Strategic Plan 2025&ndash;2027</div>
+    </div>
+    <div class="period-bar" id="period-bar" role="tablist" aria-label="Comparison period">
+      <button data-p="month" class="active">Month over Month</button>
+      <button data-p="quarter">Quarter over Quarter</button>
+      <button data-p="semester">Semester over Semester</button>
+    </div>
+  </div>
+
+  <!-- Section 1 — Student Journey Snapshot -->
+  <div class="exec-section">
+    <h3>Student Journey Snapshot <span class="hint" id="snap-hint"></span></h3>
+    <div class="snap-grid" id="snap-cards"></div>
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:14px 16px;margin-top:13px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--brand);font-weight:700;margin-bottom:9px;">Pipeline Funnel</div>
+      <div class="funnel" id="funnel"></div>
+    </div>
+  </div>
+
+  <!-- Section 2 — Period trends -->
+  <div class="exec-section">
+    <h3>Period Trends <span class="hint" id="trend-hint"></span></h3>
+    <div class="trend-grid" id="trend-cards"></div>
+    <div class="period-note" id="period-note"></div>
+  </div>
+
+  <!-- Section 3 — Strategic KPI Scorecard -->
+  <div class="exec-section">
+    <h3>Strategic KPI Scorecard <span class="hint">Strategic Plan 2025&ndash;2027</span></h3>
+    <table class="kpi-table">
+      <thead><tr><th>Strategic KPI</th><th>Target</th><th>Current</th><th id="kpi-chg-h">Change</th><th>Status</th></tr></thead>
+      <tbody id="kpi-body"></tbody>
+    </table>
+  </div>
+
+  <div class="exec-foot" id="exec-foot"></div>
+</div>
+
+<script>
+const SNAPS = [{"date":"2026-05-28","label":"May 28","source":"Leadership Touchpoint references (partial)","computed":[],"metrics":{"basic_md":25,"new_leads_30d":9}},{"date":"2026-06-04","label":"Jun 4","source":"AUSOMA_Leadership_Touchpoint_2026-06-04.pptx","computed":[],"metrics":{"pipeline_in_view":186,"enrolled":84,"basic_total":28,"basic_pm":4,"basic_md":24,"pre_clinical":26,"preclin_ibst":4,"preclin_asf":21,"preclin_loa":1,"clinicals":27,"clin_active":5,"clin_between":11,"graduated":11,"new_leads_30d":11,"apps_started":4,"apps_submitted":1,"deposits_30d":0,"fall_pipeline":38,"fall_admitted":2,"fall_deposited":2,"records_loaded":2300,"cbse_count":16,"cbse_avg":40.9,"cbse_pass_pct":6,"step1_cohort_passes":0,"between_rotations":11,"active_rotations":5,"weeks_completed_pct":null}},{"date":"2026-06-11","label":"Jun 11","source":"AUSOMA_Leadership_Touchpoint_2026-06-11.pptx","computed":[],"metrics":{"pipeline_in_view":186,"enrolled":81,"basic_total":28,"basic_pm":4,"basic_md":24,"pre_clinical":26,"preclin_ibst":4,"preclin_asf":21,"preclin_loa":1,"clinicals":24,"clin_active":4,"clin_between":16,"graduated":14,"new_leads_30d":13,"apps_started":6,"apps_submitted":null,"deposits_30d":null,"fall_pipeline":40,"fall_admitted":2,"fall_deposited":2,"records_loaded":2302,"cbse_count":16,"cbse_avg":40.9,"cbse_pass_pct":6,"step1_cohort_passes":0,"between_rotations":16,"active_rotations":4,"weeks_completed_pct":46}},{"date":"2026-06-23","label":"Jun 23","source":"Student Journey dashboard refresh (Jun 23, 2026)","computed":["enrolled","basic_pm","basic_md","basic_total","pre_clinical","preclin_ibst","preclin_asf","preclin_loa","clinicals","clin_active","clin_between","graduated","between_rotations","active_rotations"],"metrics":{"pipeline_in_view":186,"enrolled":81,"basic_total":31,"basic_pm":4,"basic_md":27,"pre_clinical":26,"preclin_ibst":4,"preclin_asf":21,"preclin_loa":1,"clinicals":24,"clin_active":4,"clin_between":12,"graduated":14,"new_leads_30d":13,"apps_started":6,"apps_submitted":null,"deposits_30d":null,"fall_pipeline":40,"fall_admitted":2,"fall_deposited":2,"records_loaded":2302,"cbse_count":16,"cbse_avg":40.9,"cbse_pass_pct":6,"step1_cohort_passes":0,"between_rotations":12,"active_rotations":4,"weeks_completed_pct":46}},{"date":"2026-06-24","label":"Jun 24","source":"Student Journey dashboard refresh (Jun 24, 2026)","computed":["enrolled","basic_pm","basic_md","basic_total","pre_clinical","preclin_ibst","preclin_asf","preclin_loa","clinicals","clin_active","clin_between","graduated","between_rotations","active_rotations"],"metrics":{"pipeline_in_view":186,"enrolled":81,"basic_total":31,"basic_pm":4,"basic_md":27,"pre_clinical":26,"preclin_ibst":4,"preclin_asf":21,"preclin_loa":1,"clinicals":24,"clin_active":4,"clin_between":12,"graduated":14,"new_leads_30d":13,"apps_started":6,"apps_submitted":null,"deposits_30d":null,"fall_pipeline":40,"fall_admitted":2,"fall_deposited":2,"records_loaded":2302,"cbse_count":16,"cbse_avg":40.9,"cbse_pass_pct":6,"step1_cohort_passes":0,"between_rotations":12,"active_rotations":4,"weeks_completed_pct":46}}];
+const KEYDOC = {"pipeline_in_view":"Admissions pipeline in view (prev + next 2 terms, Element451) \u2014 EXTERNAL","enrolled":"Enrolled students, current term \u2014 LIVE","basic_total":"Basic Sciences snapshot card = PreMed + MD1-5 \u2014 LIVE","basic_pm":"PreMed within Basic Sciences card \u2014 LIVE","basic_md":"MD1-5 within Basic Sciences card \u2014 LIVE","pre_clinical":"Pre-Clinical (post-MD5) total \u2014 LIVE","preclin_ibst":"Pre-Clinical IBST \u2014 LIVE","preclin_asf":"Pre-Clinical ASF \u2014 LIVE","preclin_loa":"Pre-Clinical LOA \u2014 LIVE","clinicals":"Clinicals total \u2014 LIVE","clin_active":"Clinicals \u2014 active rotation \u2014 LIVE","clin_between":"Clinicals \u2014 between rotations \u2014 LIVE","graduated":"Graduated, all-time \u2014 LIVE","new_leads_30d":"New admissions leads, last 30 days (Element451) \u2014 EXTERNAL","apps_started":"Applications started, 30d (Element451) \u2014 EXTERNAL","apps_submitted":"Applications submitted, 30d (Element451) \u2014 EXTERNAL","deposits_30d":"Deposits paid, last 30 days (Element451) \u2014 EXTERNAL","fall_pipeline":"Upcoming-term pipeline in view (Element451) \u2014 EXTERNAL","fall_admitted":"Upcoming-term admitted (Element451) \u2014 EXTERNAL","fall_deposited":"Upcoming-term deposited (Element451) \u2014 EXTERNAL","records_loaded":"Total records loaded in Element451 \u2014 EXTERNAL","cbse_count":"NBME CBSE scores on record (Pre-Clinical cohort) \u2014 EXTERNAL/NBME","cbse_avg":"NBME CBSE average score \u2014 EXTERNAL/NBME","cbse_pass_pct":"% of CBSE scores >= 65 \u2014 EXTERNAL/NBME","step1_cohort_passes":"USMLE Step 1 passes in current Pre-Clinical cohort \u2014 EXTERNAL/NBME","between_rotations":"Clinical students between rotations \u2014 LIVE","active_rotations":"Clinical students in an active rotation \u2014 LIVE","weeks_completed_pct":"Clinical rotation weeks completed (% of planned) \u2014 EXTERNAL/Clinicals"};
+const BOARD_MODE = false;
+const PERIOD_DAYS = { month: 30, quarter: 91, semester: 182 };
+const PERIOD_LABEL = { month: "month", quarter: "quarter", semester: "semester" };
+let PERIOD = "month";
+
+const fmtNum = v => (v==null||v==="") ? "&mdash;" : (Math.round(v*10)/10).toLocaleString();
+const parseD = s => new Date(s + "T00:00:00");
+const dateLabel = s => parseD(s).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+
+// Current value: walk to older snapshots when null (carries last known forward).
+function valAt(idx, key) {
+  for (let i=idx; i>=0; i--) {
+    const m = SNAPS[i].metrics || {};
+    if (m[key] !== null && m[key] !== undefined) return { v:m[key], date:SNAPS[i].date };
+  }
+  return { v:null, date:null };
+}
+// Baseline value: earliest available value on/after the baseline date (walk
+// forward toward — but not including — the current snapshot), so a sparse
+// baseline snapshot still anchors a real comparison; fall back to older if none.
+function valBase(idx, key) {
+  const cur = SNAPS.length-1;
+  for (let i=idx; i<cur; i++) {
+    const m = SNAPS[i].metrics || {};
+    if (m[key] !== null && m[key] !== undefined) return { v:m[key], date:SNAPS[i].date };
+  }
+  for (let i=Math.min(idx,cur-1); i>=0; i--) {
+    const m = SNAPS[i].metrics || {};
+    if (m[key] !== null && m[key] !== undefined) return { v:m[key], date:SNAPS[i].date };
+  }
+  return { v:null, date:null };
+}
+// Pick baseline snapshot index for the active period relative to the latest snapshot.
+function baselineIdx() {
+  const cur = SNAPS.length-1;
+  const target = parseD(SNAPS[cur].date).getTime() - PERIOD_DAYS[PERIOD]*86400000;
+  let best=-1, bestGap=Infinity, fellBack=true;
+  for (let i=0;i<cur;i++) {
+    const t = parseD(SNAPS[i].date).getTime();
+    if (t <= target) { best=i; fellBack=false; }            // latest on/before target
+  }
+  if (best===-1) {                                            // all newer than target -> oldest
+    for (let i=0;i<cur;i++) { const g=Math.abs(parseD(SNAPS[i].date).getTime()-target); if(g<bestGap){bestGap=g;best=i;} }
+    fellBack = true;
+  }
+  if (best===-1) best = Math.max(0,cur-1);
+  return { idx:best, fellBack };
+}
+function delta(curV, baseV) {
+  if (curV==null || baseV==null) return null;
+  return Math.round((curV-baseV)*10)/10;
+}
+// dir: +1 = up is good, -1 = down is good
+function dClass(d, dir) {
+  if (d==null || d===0) return "flat";
+  const good = (d>0) ? dir>0 : dir<0;
+  return good ? "up" : "down";
+}
+const arrow = cls => cls==="up" ? "▲" : cls==="down" ? "▼" : "▬";
+
+function curIdx() { return SNAPS.length-1; }
+
+/* ---- Section 1: Snapshot cards + funnel ---- */
+const SNAP_CARDS = [
+  { key:"pipeline_in_view", lab:"Pipeline in view", dir:1, meta:s=>"Prev + next 2 terms (Element451)" },
+  { key:"enrolled",         lab:"Enrolled",         dir:1, meta:s=>"Term "+CUR_LABEL },
+  { key:"basic_total",      lab:"Basic Sciences",   dir:1, meta:s=>fmtNum(s.basic_pm)+" PM · "+fmtNum(s.basic_md)+" MD1–5" },
+  { key:"pre_clinical",     lab:"Pre-Clinical",     dir:1, meta:s=>fmtNum(s.preclin_ibst)+" IBST · "+fmtNum(s.preclin_asf)+" ASF · "+fmtNum(s.preclin_loa)+" LOA" },
+  { key:"clinicals",        lab:"Clinicals",        dir:1, meta:s=>fmtNum(s.clin_active)+" active · "+fmtNum(s.clin_between)+" between" },
+  { key:"graduated",        lab:"Graduated",        dir:1, meta:s=>"All-time" },
+];
+const CUR_LABEL = "Summer 2026";
+
+function renderSnap() {
+  const ci = curIdx(), s = SNAPS[ci].metrics, b = baselineIdx();
+  const bm = SNAPS[b.idx].metrics;
+  document.getElementById("snap-hint").innerHTML =
+    "as of "+dateLabel(SNAPS[ci].date)+" · ▲▼ vs "+dateLabel(SNAPS[b.idx].date);
+  const wrap = document.getElementById("snap-cards"); wrap.innerHTML="";
+  for (const c of SNAP_CARDS) {
+    const cv = valAt(ci, c.key).v, bv = valBase(b.idx, c.key).v;
+    const d = delta(cv, bv), cls = dClass(d, c.dir);
+    const chg = d==null ? "" : `<div class="chg ${cls}">${arrow(cls)} ${d>0?"+":""}${fmtNum(d)} vs ${dateLabel(SNAPS[b.idx].date)}</div>`;
+    wrap.insertAdjacentHTML("beforeend",
+      `<div class="snap-card"><div class="lab">${c.lab}</div><div class="val">${fmtNum(cv)}</div><div class="meta">${c.meta(s)}</div>${chg}</div>`);
+  }
+  // Funnel
+  const F = [
+    {lab:"Pipeline in view", key:"pipeline_in_view"},
+    {lab:"Enrolled", key:"enrolled"},
+    {lab:"Basic Sciences", key:"basic_total"},
+    {lab:"Pre-Clinical", key:"pre_clinical"},
+    {lab:"Clinicals", key:"clinicals"},
+    {lab:"Graduated", key:"graduated"},
+  ].map(f=>({...f, n: valAt(ci,f.key).v || 0}));
+  const max = Math.max(...F.map(f=>f.n), 1);
+  const fw = document.getElementById("funnel"); fw.innerHTML="";
+  for (const f of F) {
+    const pct = Math.max(7, f.n/max*100);
+    fw.insertAdjacentHTML("beforeend",
+      `<div class="frow"><div class="flab">${f.lab}</div><div class="fbar"><div class="fill" style="width:${pct}%">${fmtNum(f.n)}</div></div><div class="fcount">${fmtNum(f.n)}</div></div>`);
+  }
+}
+
+/* ---- Section 2: Trend cards ---- */
+const TREND_CARDS = [
+  { title:"Graduations & Enrollment", head:"graduated", dir:1,
+     rows:[["graduated","Graduated (all-time)",1],["enrolled","Enrolled",1],["clinicals","In clinicals",1]] },
+  { title:"Admissions Pipeline", head:"fall_pipeline", dir:1,
+     rows:[["new_leads_30d","New leads (30d)",1],["apps_started","Apps started",1],["fall_pipeline","Upcoming-term pipeline",1],["fall_deposited","Deposited",1]] },
+  { title:"Clinical Placement", head:"weeks_completed_pct", dir:1,
+     rows:[["weeks_completed_pct","Rotation weeks completed %",1],["active_rotations","Active rotations",1],["between_rotations","Between rotations",-1]] },
+  { title:"CBSE & Step 1 Readiness", head:"cbse_pass_pct", dir:1,
+     rows:[["cbse_pass_pct","CBSE pass rate %",1],["cbse_avg","CBSE average",1],["step1_cohort_passes","Step 1 passes (cohort)",1],["cbse_count","Scores on record",1]] },
+];
+function renderTrends() {
+  const ci=curIdx(), b=baselineIdx(), bi=b.idx;
+  document.getElementById("trend-hint").innerHTML =
+    dateLabel(SNAPS[bi].date)+" → "+dateLabel(SNAPS[ci].date);
+  const wrap=document.getElementById("trend-cards"); wrap.innerHTML="";
+  for (const c of TREND_CARDS) {
+    const hc = valAt(ci,c.head).v, hb = valBase(bi,c.head).v;
+    const hd = delta(hc,hb), hcls = dClass(hd, c.dir);
+    let rows="";
+    for (const [key,name,dir] of c.rows) {
+      const cv=valAt(ci,key).v, bv=valBase(bi,key).v, d=delta(cv,bv), dc=dClass(d,dir);
+      const dtxt = d==null ? "" : `<span class="d ${dc}">${arrow(dc)} ${d>0?"+":""}${fmtNum(d)}</span>`;
+      rows += `<div class="tmetric"><span class="mn">${name}</span><span class="mv">${fmtNum(bv)} → ${fmtNum(cv)} ${dtxt}</span></div>`;
+    }
+    const summ = hd==null ? "No comparable data for this period yet."
+      : `${c.title.split(" ")[0]} headline ${fmtNum(hb)} → ${fmtNum(hc)} (${hd>0?"+":""}${fmtNum(hd)}) ${PERIOD_LABEL[PERIOD]}-over-${PERIOD_LABEL[PERIOD]}.`;
+    wrap.insertAdjacentHTML("beforeend",
+      `<div class="tcard ${hcls}"><div class="th"><span class="arrow">${arrow(hcls)}</span><span class="tt">${c.title}</span></div><div class="summ">${summ}</div><div class="rows">${rows}</div></div>`);
+  }
+  // Period note — be honest about how much history backs the comparison.
+  const span = Math.round((parseD(SNAPS[ci].date)-parseD(SNAPS[0].date))/86400000);
+  const note = document.getElementById("period-note");
+  let msg = `Comparing latest refresh (${dateLabel(SNAPS[ci].date)}) against ${dateLabel(SNAPS[bi].date)}.`;
+  if (b.fellBack) msg += ` History begins ${dateLabel(SNAPS[0].date)} (${span} days) — full ${PERIOD_LABEL[PERIOD]}-over-${PERIOD_LABEL[PERIOD]} comparisons populate automatically as daily snapshots accumulate.`;
+  note.innerHTML = msg;
+}
+
+/* ---- Section 3: KPI scorecard ---- */
+function pct(n,d){ return (n==null||d==null||d===0)?null:Math.round(n/d*1000)/10; }
+function renderKPI() {
+  const ci=curIdx(), bi=baselineIdx().idx, s=SNAPS[ci].metrics;
+  const cbsePass=valAt(ci,"cbse_pass_pct").v, cbseAvg=valAt(ci,"cbse_avg").v;
+  const step1=valAt(ci,"step1_cohort_passes").v;
+  const fallPipe=valAt(ci,"fall_pipeline").v, fallDep=valAt(ci,"fall_deposited").v, fallAdm=valAt(ci,"fall_admitted").v;
+  const conv=pct(fallDep, fallPipe);
+  const ROWS = [
+    {k:"NBME CBSE pass rate", tgt:"≥70% (SP2)", cur:`${fmtNum(cbsePass)}% ≥65 · avg ${fmtNum(cbseAvg)}`, chgKey:"cbse_pass_pct", chgDir:1, status:"risk", statusTxt:"Off track"},
+    {k:"USMLE Step 1 pass rate", tgt:"≥80% by 2026 (SP2)", cur:`${fmtNum(step1)} passes in Pre-Clinical cohort`, chgKey:"step1_cohort_passes", chgDir:1, status:"risk", statusTxt:"Off track"},
+    {k:"Basic → Clinical progression", tgt:"≥85% (SP2)", cur:"Conditional pathway routed to committees", chgKey:null, status:"warn", statusTxt:"In progress"},
+    {k:"Clerkship eval completion", tgt:"≥90% (SP3)", cur:"Evaluations flow & cleanup scoped", chgKey:null, status:"info", statusTxt:"Tracking starts"},
+    {k:"NBME Shelf pass rate", tgt:"≥80% (SP3)", cur:"Request/results flow to Populi pending", chgKey:null, status:"info", statusTxt:"Tracking starts"},
+    {k:"Lead → enrollment conversion", tgt:"10–15% (SP4)", cur:`~${conv==null?"—":conv}% (${fmtNum(fallPipe)} in view · ${fmtNum(fallDep)} dep)`, chgKey:"new_leads_30d", chgDir:1, status:"warn", statusTxt:"In progress"},
+    {k:"Annual new enrollments", tgt:"80+ (SP4)", cur:`Upcoming term: ${fmtNum(fallDep)} deposited · ${fmtNum(fallAdm)} admitted`, chgKey:"fall_deposited", chgDir:1, status:"warn", statusTxt:"In progress"},
+    {k:"SIS/CRM integration", tgt:"≥90% (SP6)", cur:"Journey auto-feed live; NBME flow pending", chgKey:null, status:"good", statusTxt:"On track"},
+  ];
+  document.getElementById("kpi-chg-h").textContent = PERIOD.charAt(0).toUpperCase()+PERIOD.slice(1)+" Δ";
+  const body=document.getElementById("kpi-body"); body.innerHTML="";
+  for (const r of ROWS) {
+    let chg="<span class='d flat'>&mdash;</span>";
+    if (r.chgKey) {
+      const cv=valAt(ci,r.chgKey).v, bv=valBase(bi,r.chgKey).v, d=delta(cv,bv), dc=dClass(d,r.chgDir||1);
+      chg = d==null ? "<span class='d flat'>&mdash;</span>" : `<span class="d ${dc}">${arrow(dc)} ${d>0?"+":""}${fmtNum(d)}</span>`;
+    }
+    body.insertAdjacentHTML("beforeend",
+      `<tr><td class="k">${r.k}</td><td class="tgt">${r.tgt}</td><td class="cur">${r.cur}</td><td>${chg}</td><td><span class="spill ${r.status}">${r.statusTxt}</span></td></tr>`);
+  }
+}
+
+function renderAll() { renderSnap(); renderTrends(); renderKPI(); }
+
+document.addEventListener("DOMContentLoaded", function() {
+  const ci=curIdx();
+  document.getElementById("exec-asof").innerHTML =
+    "Board-facing snapshot · data as of "+dateLabel(SNAPS[ci].date)+" · Strategic Plan 2025–2027";
+  document.getElementById("exec-foot").innerHTML =
+    "Funnel & stage counts computed live from the Student Journey data each refresh. Admissions / pipeline-in-view / NBME&nbsp;CBSE / Step-1-cohort / rotation-weeks figures are carried forward from the most recent report until a fresh source number is entered. Period deltas compare the latest refresh against the closest available snapshot for the selected horizon. Sources: Student Journey dashboard · Admissions Pipeline (Element451) · Strategic Plan 2025–2027.";
+  document.querySelectorAll("#period-bar button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      PERIOD = btn.dataset.p;
+      document.querySelectorAll("#period-bar button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      renderAll();
+    });
+  });
+  renderAll();
+});
+</script>
+<footer class="confidential-footer" style="margin-top:24px;padding:10px 22px;border-top:1px solid #d8dce4;background:#0a3478;color:#cfd6e6;font:11px/1.4 -apple-system,system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-transform:uppercase;">Proprietary and Confidential &middot; AUSOMA Internal Use Only</footer>
