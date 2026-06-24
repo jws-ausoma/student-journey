@@ -287,6 +287,21 @@ body.modal-open { overflow:hidden; }
 .note { white-space:pre-wrap; padding:10px; background:#fff8e6; border:1px solid #f0d896; border-radius:6px; font-size:13px; }
 .empty-detail { color:var(--muted); padding:40px; text-align:center; }
 
+/* Beyond-MD5 journey flag pills + summary strip */
+.flag-pill { display:inline-block; padding:2px 8px; border-radius:99px; font-weight:700; font-size:11px; white-space:nowrap; }
+.flag-risk { background:#fde2e2; color:#991b1b; }
+.flag-review { background:#fef3c7; color:#92400e; }
+.flag-ontrack { background:#dcfce7; color:#065f46; }
+.flag-done { background:#e0edff; color:#0b3d91; }
+.flag-na { background:#eee; color:#666; }
+.bm5-strip { display:flex; flex-wrap:wrap; gap:10px; padding:10px 22px 0; }
+.bm5-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:9px 14px; min-width:130px; }
+.bm5-card .lab { font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); font-weight:700; }
+.bm5-card .val { font-size:21px; font-weight:800; color:var(--brand); margin-top:2px; }
+.bm5-card .sub { font-size:11px; color:var(--muted); }
+.bm5-card.kpi-target .val.good { color:#16a34a; } .bm5-card.kpi-target .val.bad { color:#dc2626; }
+.bm5-card.clickable { cursor:pointer; } .bm5-card.clickable:hover { background:#f5f8fd; }
+.bm5-card.on { outline:2px solid var(--brand); }
 .cbse-band { display:inline-block; padding:2px 7px; border-radius:4px; font-weight:600; font-size:12px; }
 .cbse-band.pass { background:#cfeacf; color:#0f5128; }
 .cbse-band.near { background:#fff0c2; color:#7a5a00; }
@@ -366,7 +381,7 @@ body.modal-open { overflow:hidden; }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-24 18:53 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-24 19:06 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
