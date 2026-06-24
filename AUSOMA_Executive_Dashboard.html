@@ -229,6 +229,13 @@ body.modal-open { overflow:hidden; }
 .detail .kvgrid { display:grid; grid-template-columns: 200px 1fr; row-gap:6px; column-gap:14px; }
 .detail .kvgrid .k { color:var(--muted); }
 .detail .detail-kind { display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--brand); background:#eef2fb; border:1px solid #d6e0f5; padding:3px 11px; border-radius:99px; margin:0 0 8px 0; }
+/* "Stage not reached" message shown when a student is opened on a page their
+   journey hasn't progressed to yet (e.g. a PreMed student on Clinicals). */
+.detail .stage-block { margin-top:16px; padding:26px 22px; border:1.5px dashed var(--border); border-radius:10px; background:#fbfcfe; text-align:center; }
+.detail .stage-block p { font-size:14px; color:var(--ink); margin:0 0 18px; line-height:1.5; }
+.detail .stage-links { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; }
+.detail .stage-links a { color:var(--brand-2); font-weight:600; text-decoration:none; font-size:13px; }
+.detail .stage-links a:hover { text-decoration:underline; }
 .detail .group .crosslink { float:right; font-size:11px; font-weight:500; }
 .detail .group .crosslink a { color:var(--brand-2); text-decoration:none; }
 .detail .group .crosslink a:hover { text-decoration:underline; }
@@ -352,7 +359,7 @@ body.modal-open { overflow:hidden; }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-24 16:25 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-24 16:51 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html" class="active">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
 
