@@ -107,6 +107,11 @@ body.hide-subtotals .kpi .card .breakdown { display:none; }
    is height minus the thead. */
 .roster.compact { max-height: 320px; min-height:240px; overflow:auto; }
 .roster table { width:100%; border-collapse:collapse; }
+/* Clinical Rotations table: fixed layout + colgroup widths so the Previous /
+   Current / Next rotation groups stay equal width instead of Previous hogging
+   the extra space. Long preceptor names wrap rather than widen the column. */
+.roster table.rot-fixed { table-layout:fixed; }
+.roster table.rot-fixed td, .roster table.rot-fixed th { overflow-wrap:anywhere; }
 /* Sticky thead — locks to the top of the scroll container so column labels
    stay visible while scrolling. Default offset is 0 (no tab strip above the
    table). On pages that have a .roster-tabs strip above the table, push the
@@ -346,7 +351,7 @@ body.modal-open { overflow:hidden; }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-24 16:08 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-24 16:15 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html" class="active">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
 
