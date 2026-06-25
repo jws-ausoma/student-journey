@@ -296,6 +296,15 @@ body.modal-open { overflow:hidden; }
 .flag-pill { display:inline-block; padding:2px 8px; border-radius:99px; font-weight:700; font-size:11px; white-space:nowrap; }
 /* SPC tier pill: allow the "· improving / · plateaued" to wrap onto a 2nd line */
 .flag-pill.spc-tier { white-space:normal; line-height:1.18; text-align:center; }
+/* Info (ⓘ) button on the Journey Stage header + the help popup it opens */
+.col-info { margin-left:5px; border:1px solid var(--border); background:transparent; color:var(--brand); border-radius:50%; min-width:17px; height:17px; line-height:15px; font-size:12px; font-weight:800; cursor:pointer; padding:0; vertical-align:middle; }
+.col-info:hover { background:var(--brand); color:#fff; border-color:var(--brand); }
+.jhelp-stage { border:1px solid var(--border); border-radius:10px; padding:11px 14px; margin:11px 0; }
+.jhelp-stage h3 { margin:0 0 2px; color:var(--brand); font-size:15px; }
+.jhelp-stage .desc { color:var(--muted); font-size:12.5px; margin-bottom:7px; }
+.jhelp-sub { display:flex; gap:9px; align-items:flex-start; margin:5px 0; font-size:13px; line-height:1.35; }
+.jhelp-flag { flex:0 0 auto; font-size:10px; font-weight:800; padding:2px 8px; border-radius:99px; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; }
+.jf-g { background:#e7f5ea; color:#1e5b27; } .jf-y { background:#fff6da; color:#6e5600; } .jf-r { background:#fbe4e2; color:#8f1d17; }
 .flag-risk { background:#fde2e2; color:#991b1b; }
 .flag-review { background:#fef3c7; color:#92400e; }
 .flag-ontrack { background:#dcfce7; color:#065f46; }
@@ -481,7 +490,7 @@ html[data-theme="dark"] .sj-close { background:#222c3a; color:var(--ink); }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-25 11:38 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-25 11:58 AST · Term Summer 2026</div>
   <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle light / dark mode" aria-label="Toggle light / dark mode">🌙</button>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html" class="active">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
