@@ -3,6 +3,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>AUSOMA · Executive Dashboard</title>
+<script>(function(){try{var t=localStorage.getItem('ausoma_theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <link rel="manifest" href="manifest.json"/><meta name="theme-color" content="#0a3478"/><meta name="application-name" content="AUSOMA Student Journey"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="AUSOMA Journey"/><meta name="mobile-web-app-capable" content="yes"/><link rel="icon" type="image/svg+xml" href="icon.svg"/><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/><link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/><script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <style>
 :root {
@@ -59,6 +60,7 @@ nav.tabs a.active { color:#0a3478; background:var(--accent); border-color:var(--
 /* Show/hide sub-totals toggle. Default state (no body class) keeps chips
    hidden — set in JS at page load so re-renders inherit the preference. */
 body.hide-subtotals .kpi .card .breakdown { display:none; }
+body.hide-subtotals .kpi .card .value .subtot { display:none; }
 /* The toggle button sits at the right end of the "In view" row so it shares
    visual real estate with the same-row sub-totals it controls. The row
    wrapper takes over the kpi-visible's background/border so the row reads
@@ -305,7 +307,7 @@ body.modal-open { overflow:hidden; }
 .jstep-sub { font-size:10.5px; color:var(--muted); }
 .jstep-arrow { align-self:center; color:var(--muted); font-size:20px; padding:0 9px; }
 .bm5-strip { display:flex; flex-wrap:wrap; gap:10px; padding:10px 22px 0; }
-.bm5-card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:7px 14px; min-width:128px; box-shadow:0 1px 2px rgba(11,61,145,.06); }
+.bm5-card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:7px 14px; min-width:128px; box-shadow:0 1px 2px rgba(11,61,145,.06); text-align:center; }
 .bm5-card .lab { font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); font-weight:700; }
 .bm5-card .val { font-size:21px; font-weight:800; color:var(--brand); margin-top:2px; }
 .bm5-card .sub { font-size:11px; color:var(--muted); }
@@ -397,12 +399,45 @@ table.cbse-hist tr:last-child td { border-bottom:0; }
 .legend-stage.Exited   td.tag .pill { background:var(--st-Exited);    color:var(--ink-Exited);    border-color:#d68888; }
 .legend-stage.Grad     td.tag .pill { background:var(--st-Grad);      color:white;                border-color:#7765c2; }
 .legend-stage.Meta     td.tag .pill { background:var(--st-Meta);      color:var(--ink-Meta);      border-color:#c5c8d2; }
+
+/* ---- Light / dark theme ---- */
+.theme-toggle { margin-left:12px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.32); color:#fff; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:14px; line-height:1; }
+.theme-toggle:hover { background:rgba(255,255,255,.30); }
+html[data-theme="dark"] {
+  --bg:#0f141b; --panel:#1a212c; --ink:#e7ebf2; --muted:#9aa7b6; --border:#2d3845; --brand-2:#7aa9f0;
+}
+html[data-theme="dark"] body { background:var(--bg); color:var(--ink); }
+html[data-theme="dark"] .kpi,
+html[data-theme="dark"] .kpi-visible,
+html[data-theme="dark"] .kpi-visible-row { background:#141a23; }
+html[data-theme="dark"] .kpi .card,
+html[data-theme="dark"] .bm5-card,
+html[data-theme="dark"] .jstep,
+html[data-theme="dark"] .kpi-visible .seg,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .detail .group,
+html[data-theme="dark"] .sj-modal .mpanel,
+html[data-theme="dark"] .legend-modal { background:#1b2330; }
+html[data-theme="dark"] .roster table thead th { background:#222c3a; color:#cdd6e2; }
+html[data-theme="dark"] .roster table thead tr.filter-row th { background:#1d2733; }
+html[data-theme="dark"] .roster table tbody td,
+html[data-theme="dark"] table.cbse-hist th,
+html[data-theme="dark"] table.cbse-hist td,
+html[data-theme="dark"] th, html[data-theme="dark"] td { border-color:#2a3441; }
+html[data-theme="dark"] tr:hover td { background:#222c3a; }
+html[data-theme="dark"] tr.selected td { background:#26344a; }
+html[data-theme="dark"] input, html[data-theme="dark"] select, html[data-theme="dark"] textarea {
+  background:#222c3a; color:var(--ink); border-color:#33424f;
+}
+html[data-theme="dark"] .meta, html[data-theme="dark"] .sub { color:var(--muted); }
+html[data-theme="dark"] .sj-close { background:#222c3a; color:var(--ink); }
 </style>
 </head><body>
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-24 21:13 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-24 21:24 AST · Term Summer 2026</div>
+  <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle light / dark mode" aria-label="Toggle light / dark mode">🌙</button>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html" class="active">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
 
@@ -519,6 +554,19 @@ document.addEventListener('DOMContentLoaded',function(){
      #detail by now, so open the pop-up to match the linked student. */
   if(/[#&]sid=\d+/.test(location.hash)) openDetailModal();
 });
+/* Light / dark theme toggle (preference persists; honors OS default first). */
+(function(){
+  var btn=document.getElementById('theme-toggle');
+  function sync(){ var dark=document.documentElement.getAttribute('data-theme')==='dark'; if(btn) btn.textContent=dark?'☀️':'🌙'; }
+  sync();
+  if(btn) btn.onclick=function(){
+    var dark=document.documentElement.getAttribute('data-theme')==='dark';
+    var t=dark?'light':'dark';
+    document.documentElement.setAttribute('data-theme',t);
+    try{localStorage.setItem('ausoma_theme',t);}catch(e){}
+    sync();
+  };
+})();
 </script>
 <style>
 .exec-wrap { max-width:1280px; margin:0 auto; padding:18px 22px 60px; }
