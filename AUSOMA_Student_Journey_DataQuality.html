@@ -70,7 +70,7 @@ body.hide-subtotals .kpi-visible { display:none; }
    as one continuous bar; .kpi-visible is made transparent inside it. */
 .kpi-visible-row { display:flex; align-items:stretch; background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
 .kpi-visible-row .kpi-visible { flex:1; background:transparent; border-top:none; border-bottom:none; }
-.kpi-visible-row .subtotals-toggle { align-self:center; margin:0 14px 0 8px; flex-shrink:0; }
+.kpi-visible-row .subtotals-toggle { align-self:center; margin:0 14px 0 auto; flex-shrink:0; }
 .subtotals-toggle { font:11px inherit; padding:3px 11px; border:1px solid var(--brand); border-radius:99px; background:#fff; color:var(--brand); cursor:pointer; font-weight:600; line-height:1.4; white-space:nowrap; }
 .subtotals-toggle:hover { background:var(--brand-2); color:#fff; border-color:var(--brand-2); }
 .subtotals-toggle.on { background:var(--brand); color:#fff; }
@@ -302,7 +302,7 @@ body.modal-open { overflow:hidden; }
 /* Horizontal Journey-Stage guide above the metric strip */
 .journey-stepper { display:flex; align-items:stretch; gap:0; padding:12px 22px 2px; flex-wrap:wrap; }
 .journey-stepper .jstep-title { font-size:11px; line-height:1.15; text-transform:uppercase; letter-spacing:.5px; color:var(--brand); font-weight:700; align-self:center; margin-right:14px; }
-.jstep { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:6px 16px 8px; text-align:center; cursor:pointer; min-width:122px; box-shadow:0 1px 2px rgba(11,61,145,.06); }
+.jstep { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:6px 12px 8px; text-align:center; cursor:pointer; width:138px; box-sizing:border-box; box-shadow:0 1px 2px rgba(11,61,145,.06); }
 .jstep:hover { background:#f1f6fe; }
 .jstep.on { outline:3px solid var(--accent); outline-offset:1px; background:#fff7e6; }
 .jstep-lab { font-size:11.5px; font-weight:700; color:var(--ink); line-height:1.15; min-height:28px; display:flex; align-items:center; justify-content:center; }
@@ -447,7 +447,7 @@ html[data-theme="dark"] .sj-close { background:#222c3a; color:var(--ink); }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-25 01:55 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-25 02:11 AST · Term Summer 2026</div>
   <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle light / dark mode" aria-label="Toggle light / dark mode">🌙</button>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
