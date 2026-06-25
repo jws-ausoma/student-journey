@@ -72,9 +72,9 @@ body.hide-subtotals .kpi .card .breakdown { display:none; }
 .kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1.1; }
 .kpi .value { font-size:18px; font-weight:700; margin-top:1px; color:var(--ink); line-height:1.1; }
 .kpi .sub { font-size:10.5px; color:var(--muted); line-height:1.2; }
-.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:4px 22px; font-size:12px; color:var(--ink); display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
-.kpi-visible .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-size:10px; font-weight:700; margin-right:8px; }
-.kpi-visible .seg { white-space:nowrap; }
+.kpi-visible { background:#f3f6fb; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:7px 22px; font-size:12px; color:var(--ink); display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.kpi-visible .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-size:10px; font-weight:700; margin-right:6px; }
+.kpi-visible .seg { white-space:nowrap; background:var(--panel); border:1px solid var(--border); border-radius:99px; padding:3px 12px; }
 .kpi-visible .seg b { color:var(--brand); font-weight:700; }
 .kpi-visible .seg .name { color:var(--muted); margin-right:4px; font-size:11px; }
 .kpi-visible.stage-PreMed b { color:#102a5c; }
@@ -297,11 +297,11 @@ body.modal-open { overflow:hidden; }
 /* Horizontal Journey-Stage guide above the metric strip */
 .journey-stepper { display:flex; align-items:stretch; gap:0; padding:12px 22px 2px; flex-wrap:wrap; }
 .journey-stepper .jstep-title { font-size:11px; line-height:1.15; text-transform:uppercase; letter-spacing:.5px; color:var(--brand); font-weight:700; align-self:center; margin-right:14px; }
-.jstep { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:8px 18px; text-align:center; cursor:pointer; min-width:118px; }
+.jstep { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:8px 18px 10px; text-align:center; cursor:pointer; min-width:124px; }
 .jstep:hover { background:#f5f8fd; }
 .jstep.on { outline:2px solid var(--brand); background:#eef4fc; }
-.jstep-n { font-size:23px; font-weight:800; color:var(--brand); line-height:1; }
-.jstep-lab { font-size:12px; font-weight:600; margin-top:3px; color:var(--ink); }
+.jstep-lab { font-size:12px; font-weight:700; color:var(--ink); }
+.jstep-n { width:46px; height:46px; border-radius:50%; background:var(--brand); color:#fff; font-size:20px; font-weight:800; display:flex; align-items:center; justify-content:center; margin:6px auto 4px; }
 .jstep-sub { font-size:10.5px; color:var(--muted); }
 .jstep-arrow { align-self:center; color:var(--muted); font-size:20px; padding:0 9px; }
 .bm5-strip { display:flex; flex-wrap:wrap; gap:10px; padding:10px 22px 0; }
@@ -402,7 +402,7 @@ table.cbse-hist tr:last-child td { border-bottom:0; }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-24 20:14 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-24 20:21 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html" class="active">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html">Data Quality</a></nav>
 
