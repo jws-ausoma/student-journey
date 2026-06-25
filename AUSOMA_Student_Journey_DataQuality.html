@@ -61,6 +61,9 @@ nav.tabs a.active { color:#0a3478; background:var(--accent); border-color:var(--
    hidden — set in JS at page load so re-renders inherit the preference. */
 body.hide-subtotals .kpi .card .breakdown { display:none; }
 body.hide-subtotals .kpi .card .value .subtot { display:none; }
+/* The "In view" segment row is itself a sub-total — hide it (and its counts)
+   unless Show Sub-Totals is on. The toggle button is a sibling, so it stays. */
+body.hide-subtotals .kpi-visible { display:none; }
 /* The toggle button sits at the right end of the "In view" row so it shares
    visual real estate with the same-row sub-totals it controls. The row
    wrapper takes over the kpi-visible's background/border so the row reads
@@ -310,6 +313,9 @@ body.modal-open { overflow:hidden; }
 .jstage-sub { display:inline-block; margin:2px 0 1px; padding:1px 7px; font-size:11px; font-weight:600;
               color:var(--brand); background:#eef3fc; border:1px solid #d6e1f4; border-radius:4px; }
 html[data-theme="dark"] .jstage-sub { background:rgba(120,160,230,.14); border-color:rgba(120,160,230,.32); }
+/* Divider + KPI cluster sharing the journey-stepper row (after Step 1 Passed) */
+.jstep-divider { width:0; border-left:2px solid var(--border); margin:2px 16px; align-self:stretch; }
+.jstep-kpis { display:flex; gap:10px; align-items:stretch; flex-wrap:wrap; }
 .jstep-arrow { align-self:center; color:var(--muted); font-size:20px; padding:0 9px; }
 .bm5-strip { display:flex; flex-wrap:wrap; gap:10px; padding:10px 22px 0; }
 .bm5-card { background:#fbfcfe; border:1.5px solid var(--brand); border-radius:6px; padding:7px 14px; min-width:128px; box-shadow:0 1px 2px rgba(11,61,145,.06); text-align:center; }
@@ -441,7 +447,7 @@ html[data-theme="dark"] .sj-close { background:#222c3a; color:var(--ink); }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-25 01:39 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-25 01:55 AST · Term Summer 2026</div>
   <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle light / dark mode" aria-label="Toggle light / dark mode">🌙</button>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
