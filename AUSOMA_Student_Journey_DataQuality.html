@@ -455,6 +455,15 @@ html[data-theme="dark"] .rot-cell.complete { background:#16271a; }
 html[data-theme="dark"] .rot-cell.active { background:#2e2716; }
 html[data-theme="dark"] .rot-cell.scheduled { background:#16243a; }
 html[data-theme="dark"] .rot-cell.pending { background:#171c25; }
+/* Main rotations table status tints (need .roster + status to out-specify the light rules) */
+html[data-theme="dark"] .roster .rot-cell.ending-soon { background:#3a2f12; }
+html[data-theme="dark"] .roster .rot-cell.ending-very-soon { background:#3a1f1c; }
+html[data-theme="dark"] .roster .rot-cell.stuck,
+html[data-theme="dark"] .roster .rot-cell.stuck.dim { background:#3a1c1c; color:#f0b3ad; }
+html[data-theme="dark"] .roster .rot-cell.ready-grad,
+html[data-theme="dark"] .roster .rot-cell.ready-grad.dim { background:#16271a; color:#a9e0b0; }
+html[data-theme="dark"] .roster .rot-cell.pending-step2,
+html[data-theme="dark"] .roster .rot-cell.pending-step2.dim { background:#16271a; color:#a9d2ad; }
 html[data-theme="dark"] .forecast .col { background:#1b2330; }
 html[data-theme="dark"] .forecast .summary-row { background:#141a23; }
 html[data-theme="dark"] .forecast .col .list .item { background:#1e2735; }
@@ -470,7 +479,7 @@ html[data-theme="dark"] .sj-close { background:#222c3a; color:var(--ink); }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-25 11:24 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-25 11:29 AST · Term Summer 2026</div>
   <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle light / dark mode" aria-label="Toggle light / dark mode">🌙</button>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
