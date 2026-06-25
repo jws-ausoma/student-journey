@@ -340,6 +340,10 @@ table.cbse-hist tr:last-child td { border-bottom:0; }
 .roster table thead tr.filter-row select { padding:3px 5px; border:1px solid var(--border); border-radius:5px; font-size:11.5px; background:#fff; max-width:100%; }
 .roster table thead tr.filter-row .hdr-filters { display:flex; gap:4px; margin-top:4px; flex-wrap:wrap; align-items:center; }
 .roster table thead tr.filter-row .clear { font-size:11px; padding:3px 8px; }
+/* Search bar moved ABOVE the header row (sticky); push preclin headers below it */
+.roster-search { position:sticky; top:0; z-index:7; background:var(--panel); padding:8px 22px; border-bottom:1px solid var(--border); }
+.roster-search input[type=text] { width:320px; max-width:100%; padding:5px 10px; border:1px solid var(--border); border-radius:6px; font-size:12.5px; }
+#preclin-table thead th { top:46px; }
 .cbse-band.pass { background:#cfeacf; color:#0f5128; }
 .cbse-band.near { background:#fff0c2; color:#7a5a00; }
 .cbse-band.warn { background:#ffd3a8; color:#7a3500; }
@@ -456,7 +460,7 @@ html[data-theme="dark"] .sj-close { background:#222c3a; color:var(--ink); }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-25 07:11 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-25 07:15 AST · Term Summer 2026</div>
   <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle light / dark mode" aria-label="Toggle light / dark mode">🌙</button>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
