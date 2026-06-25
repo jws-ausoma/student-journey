@@ -294,6 +294,16 @@ body.modal-open { overflow:hidden; }
 .flag-ontrack { background:#dcfce7; color:#065f46; }
 .flag-done { background:#e0edff; color:#0b3d91; }
 .flag-na { background:#eee; color:#666; }
+/* Horizontal Journey-Stage guide above the metric strip */
+.journey-stepper { display:flex; align-items:stretch; gap:0; padding:12px 22px 2px; flex-wrap:wrap; }
+.journey-stepper .jstep-title { font-size:11px; line-height:1.15; text-transform:uppercase; letter-spacing:.5px; color:var(--brand); font-weight:700; align-self:center; margin-right:14px; }
+.jstep { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:8px 18px; text-align:center; cursor:pointer; min-width:118px; }
+.jstep:hover { background:#f5f8fd; }
+.jstep.on { outline:2px solid var(--brand); background:#eef4fc; }
+.jstep-n { font-size:23px; font-weight:800; color:var(--brand); line-height:1; }
+.jstep-lab { font-size:12px; font-weight:600; margin-top:3px; color:var(--ink); }
+.jstep-sub { font-size:10.5px; color:var(--muted); }
+.jstep-arrow { align-self:center; color:var(--muted); font-size:20px; padding:0 9px; }
 .bm5-strip { display:flex; flex-wrap:wrap; gap:10px; padding:10px 22px 0; }
 .bm5-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:9px 14px; min-width:130px; }
 .bm5-card .lab { font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); font-weight:700; }
@@ -392,7 +402,7 @@ table.cbse-hist tr:last-child td { border-bottom:0; }
 <header class="topbar">
   
   <h1>AUSOMA Student Journey</h1>
-  <div class="meta">Last Updated 2026-06-24 20:02 AST · Term Summer 2026</div>
+  <div class="meta">Last Updated 2026-06-24 20:11 AST · Term Summer 2026</div>
 </header>
 <nav class="tabs"><a href="AUSOMA_Executive_Dashboard.html">Executive Dashboard</a><a href="index.html">Student Roster</a><a href="AUSOMA_Pre_Clinical_Beyond_MD5.html">Pre-Clinical (Beyond MD5)</a><a href="AUSOMA_Clinical_Rotations.html">Clinical Rotations</a><a href="AUSOMA_Cohort_Trends.html">Cohort Trends</a><a href="AUSOMA_Student_Journey_DataQuality.html" class="active">Data Quality</a></nav>
 
